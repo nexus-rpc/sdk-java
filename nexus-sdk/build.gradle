@@ -1,0 +1,31 @@
+
+plugins {
+    id 'java-library'
+    id 'com.diffplug.spotless'
+}
+
+dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+
+    testImplementation libs.junit.jupiter
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+    }
+}
+
+classes.dependsOn 'spotlessApply'
