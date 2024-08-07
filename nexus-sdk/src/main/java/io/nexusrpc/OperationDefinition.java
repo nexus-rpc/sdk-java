@@ -1,48 +1,66 @@
 package io.nexusrpc;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Objects;
-import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
+/** Definition of an operation on a service. */
 public class OperationDefinition {
-  public static OperationDefinition fromMethod(Method method) {
-    throw new UnsupportedOperationException("TODO");
+  static OperationDefinition fromMethod(Method method) {
+    Operation operation = method.getDeclaredAnnotation(Operation.class);
+    if (operation == null) {
+      throw new IllegalArgumentException("Missing @Operation annotation");
+    } else if (method.getParameterCount() > 1) {
+      throw new IllegalArgumentException("Can have no more than one parameter");
+    } else if (method.getTypeParameters().length > 0) {
+      throw new IllegalArgumentException("Cannot be generic");
+    } else if (method.getExceptionTypes().length > 0) {
+      throw new IllegalArgumentException("Cannot have throws clause");
+    } else if (method.isDefault() && !method.isSynthetic()) {
+      throw new IllegalArgumentException("Cannot have default implementation");
+    } else if (Modifier.isStatic(method.getModifiers())) {
+      throw new IllegalArgumentException("Cannot be static");
+    }
+    return newBuilder()
+        .setName(operation.name().isEmpty() ? method.getName() : operation.name())
+        .setInputType(method.getParameterCount() == 0 ? Void.TYPE : method.getParameterTypes()[0])
+        .setOutputType(method.getGenericReturnType())
+        .build();
   }
 
+  /** Create a builder for an operation definition. */
   public static Builder newBuilder() {
     return new Builder();
   }
 
+  /** Create a builder for an operation definition from an existing operation definition. */
   public static Builder newBuilder(OperationDefinition definition) {
     return new Builder(definition);
   }
 
   private final String name;
-  private final boolean async;
-  private final Optional<Type> inputType;
+  private final Type inputType;
   private final Type outputType;
 
-  private OperationDefinition(
-      String name, boolean async, Optional<Type> inputType, Type outputType) {
+  private OperationDefinition(String name, Type inputType, Type outputType) {
     this.name = name;
-    this.async = async;
     this.inputType = inputType;
     this.outputType = outputType;
   }
 
+  /** Operation name. */
   public String getName() {
     return name;
   }
 
-  public boolean isAsync() {
-    return async;
-  }
-
-  public Optional<Type> getInputType() {
+  /** Input type. Will be {@link Void#TYPE} if no input type. */
+  public Type getInputType() {
     return inputType;
   }
 
+  /** Output type. Will be {@link Void#TYPE} if void return. */
   public Type getOutputType() {
     return outputType;
   }
@@ -52,15 +70,14 @@ public class OperationDefinition {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationDefinition that = (OperationDefinition) o;
-    return async == that.async
-        && Objects.equals(name, that.name)
+    return Objects.equals(name, that.name)
         && Objects.equals(inputType, that.inputType)
         && Objects.equals(outputType, that.outputType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, async, inputType, outputType);
+    return Objects.hash(name, inputType, outputType);
   }
 
   @Override
@@ -69,8 +86,6 @@ public class OperationDefinition {
         + "name='"
         + name
         + '\''
-        + ", async="
-        + async
         + ", inputType="
         + inputType
         + ", outputType="
@@ -78,42 +93,44 @@ public class OperationDefinition {
         + '}';
   }
 
+  /** Builder for an operation definition. */
   public static class Builder {
-    private String name;
-    private boolean async;
-    private Optional<Type> inputType;
-    private Type outputType;
+    @Nullable private String name;
+    @Nullable private Type inputType;
+    @Nullable private Type outputType;
 
     private Builder() {}
 
     private Builder(OperationDefinition definition) {
-      if (definition == null) {
-        return;
-      }
-      this.name = definition.name;
-      this.async = definition.async;
-      this.inputType = definition.inputType;
-      this.outputType = definition.outputType;
+      name = definition.name;
+      inputType = definition.inputType;
+      outputType = definition.outputType;
     }
 
-    public void setName(String name) {
+    /** Set operation name, required. */
+    public Builder setName(String name) {
       this.name = name;
+      return this;
     }
 
-    public void setAsync(boolean async) {
-      this.async = async;
-    }
-
-    public void setInputType(Optional<Type> inputType) {
+    /** Set input type, required. */
+    public Builder setInputType(Type inputType) {
       this.inputType = inputType;
+      return this;
     }
 
-    public void setOutputType(Type outputType) {
+    /** Set output type, required. */
+    public Builder setOutputType(Type outputType) {
       this.outputType = outputType;
+      return this;
     }
 
+    /** Build the operation definition. */
     public OperationDefinition build() {
-      return new OperationDefinition(name, async, inputType, outputType);
+      Objects.requireNonNull(name, "Name required");
+      Objects.requireNonNull(inputType, "Input type required");
+      Objects.requireNonNull(outputType, "Output type required");
+      return new OperationDefinition(name, inputType, outputType);
     }
   }
 }
