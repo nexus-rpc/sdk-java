@@ -7,10 +7,10 @@ import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /** Information about an operation failure. */
-public class OperationFailure {
+public class FailureInfo {
   private final String message;
   private final Map<String, String> metadata;
-  private final @Nullable Object details;
+  private final @Nullable String detailsJson;
 
   /** Create a builder for an operation failure. */
   public static Builder newBuilder() {
@@ -18,14 +18,14 @@ public class OperationFailure {
   }
 
   /** Create a builder for an operation failure from an existing operation failure. */
-  public static Builder newBuilder(OperationFailure failure) {
+  public static Builder newBuilder(FailureInfo failure) {
     return new Builder(failure);
   }
 
-  private OperationFailure(String message, Map<String, String> metadata, @Nullable Object details) {
+  private FailureInfo(String message, Map<String, String> metadata, @Nullable String detailsJson) {
     this.message = message;
     this.metadata = metadata;
-    this.details = details;
+    this.detailsJson = detailsJson;
   }
 
   /** Failure message. */
@@ -39,23 +39,23 @@ public class OperationFailure {
   }
 
   /** Failure details. */
-  public @Nullable Object getDetails() {
-    return details;
+  public @Nullable String getDetailsJson() {
+    return detailsJson;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    OperationFailure that = (OperationFailure) o;
+    FailureInfo that = (FailureInfo) o;
     return Objects.equals(message, that.message)
         && Objects.equals(metadata, that.metadata)
-        && Objects.equals(details, that.details);
+        && Objects.equals(detailsJson, that.detailsJson);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(message, metadata, details);
+    return Objects.hash(message, metadata, detailsJson);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class OperationFailure {
         + ", metadata="
         + metadata
         + ", details="
-        + details
+        + detailsJson
         + '}';
   }
 
@@ -75,16 +75,16 @@ public class OperationFailure {
   public static class Builder {
     private @Nullable String message;
     private final Map<String, String> metadata;
-    private @Nullable Object details;
+    private @Nullable String detailsJson;
 
     private Builder() {
       metadata = new HashMap<>();
     }
 
-    private Builder(OperationFailure failure) {
+    private Builder(FailureInfo failure) {
       message = failure.message;
       metadata = new HashMap<>(failure.metadata);
-      details = failure.details;
+      detailsJson = failure.detailsJson;
     }
 
     /** Set message, required. */
@@ -105,16 +105,16 @@ public class OperationFailure {
     }
 
     /** Set details. */
-    public Builder setDetails(@Nullable Object details) {
-      this.details = details;
+    public Builder setDetailsJson(@Nullable String detailsJson) {
+      this.detailsJson = detailsJson;
       return this;
     }
 
     /** Build the operation failure. */
-    public OperationFailure build() {
+    public FailureInfo build() {
       Objects.requireNonNull(message, "Message required");
-      return new OperationFailure(
-          message, Collections.unmodifiableMap(new HashMap<>(metadata)), details);
+      return new FailureInfo(
+          message, Collections.unmodifiableMap(new HashMap<>(metadata)), detailsJson);
     }
   }
 }
