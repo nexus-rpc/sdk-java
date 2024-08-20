@@ -1,9 +1,6 @@
 package io.nexusrpc;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Services are interfaces that contain {@link Operation} methods.
@@ -15,6 +12,7 @@ import java.lang.annotation.Target;
  * <p>All methods within (even on super interfaces) must be annotated with {@link Operation} and
  * must conform to the rules of that annotation. Two operations with the same name are not allowed.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Service {

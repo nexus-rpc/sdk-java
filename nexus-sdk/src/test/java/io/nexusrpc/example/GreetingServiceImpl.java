@@ -1,6 +1,7 @@
 package io.nexusrpc.example;
 
 import io.nexusrpc.*;
+import io.nexusrpc.handler.*;
 import java.util.UUID;
 import java.util.concurrent.*;
 import org.jspecify.annotations.Nullable;
@@ -16,7 +17,7 @@ public class GreetingServiceImpl {
   @OperationImpl
   public OperationHandler<String, String> sayHello1() {
     // Implemented inline
-    return OperationHandler.sync((ctx, name) -> "Hello, " + name + "!");
+    return OperationHandler.sync((ctx, details, name) -> "Hello, " + name + "!");
   }
 
   @OperationImpl
@@ -30,30 +31,31 @@ public class GreetingServiceImpl {
     private final ConcurrentMap<String, Future<String>> operations = new ConcurrentHashMap<>();
 
     @Override
-    public StartResult<String> start(StartContext ctx, @Nullable String name) {
+    public OperationStartResult<String> start(
+        OperationContext context, OperationStartDetails details, @Nullable String name) {
       // For purposes of this sample, let's say if name starts with sync we do a
       // sync return. This demonstrates that at runtime the decision can be made.
       if (name == null) {
         name = "<unknown>";
       }
       if (name.startsWith("sync-")) {
-        return StartResult.sync("Hello, " + name + "!");
+        return OperationStartResult.sync("Hello, " + name + "!");
       }
-      if (ctx.getCallbackUrl() != null) {
+      if (details.getCallbackUrl() != null) {
         throw new IllegalArgumentException("This service does not support callbacks");
       }
       String id = UUID.randomUUID().toString();
       operations.put(id, apiClient.createGreeting(name));
-      return StartResult.async(id);
+      return OperationStartResult.async(id);
     }
 
     @Override
-    public String fetchResult(FetchResultContext ctx)
+    public String fetchResult(OperationContext context, OperationFetchResultDetails details)
         throws OperationNotFoundException, OperationStillRunningException {
-      Future<String> operation = getOperation(ctx.getOperationId());
+      Future<String> operation = getOperation(details.getOperationId());
       try {
         // When timeout missing, be done or fail
-        if (ctx.getTimeout() == null) {
+        if (details.getTimeout() == null) {
           if (!operation.isDone()) {
             throw new OperationStillRunningException();
           }
@@ -61,7 +63,7 @@ public class GreetingServiceImpl {
         }
         // User willing to wait
         try {
-          return operation.get(ctx.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
+          return operation.get(details.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
           throw new OperationStillRunningException();
         }
@@ -76,8 +78,9 @@ public class GreetingServiceImpl {
     }
 
     @Override
-    public OperationInfo fetchInfo(FetchInfoContext ctx) throws OperationNotFoundException {
-      Future<String> operation = getOperation(ctx.getOperationId());
+    public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
+        throws OperationNotFoundException {
+      Future<String> operation = getOperation(details.getOperationId());
       OperationState state;
       if (operation.isCancelled()) {
         state = OperationState.CANCELLED;
@@ -91,12 +94,13 @@ public class GreetingServiceImpl {
           state = OperationState.FAILED;
         }
       }
-      return OperationInfo.newBuilder().setId(ctx.getOperationId()).setState(state).build();
+      return OperationInfo.newBuilder().setId(details.getOperationId()).setState(state).build();
     }
 
     @Override
-    public void cancel(CancelContext ctx) throws OperationNotFoundException {
-      getOperation(ctx.getOperationId()).cancel(true);
+    public void cancel(OperationContext context, OperationCancelDetails details)
+        throws OperationNotFoundException {
+      getOperation(details.getOperationId()).cancel(true);
     }
 
     private Future<String> getOperation(String id) throws OperationNotFoundException {

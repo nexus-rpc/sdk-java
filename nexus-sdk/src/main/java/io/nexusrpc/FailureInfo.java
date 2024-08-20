@@ -8,9 +8,6 @@ import org.jspecify.annotations.Nullable;
 
 /** Information about an operation failure. */
 public class FailureInfo {
-  private final String message;
-  private final Map<String, String> metadata;
-  private final @Nullable String detailsJson;
 
   /** Create a builder for an operation failure. */
   public static Builder newBuilder() {
@@ -21,6 +18,10 @@ public class FailureInfo {
   public static Builder newBuilder(FailureInfo failure) {
     return new Builder(failure);
   }
+
+  private final String message;
+  private final Map<String, String> metadata;
+  private final @Nullable String detailsJson;
 
   private FailureInfo(String message, Map<String, String> metadata, @Nullable String detailsJson) {
     this.message = message;

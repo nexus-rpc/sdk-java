@@ -1,9 +1,7 @@
-package io.nexusrpc;
+package io.nexusrpc.handler;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.nexusrpc.Service;
+import java.lang.annotation.*;
 
 /**
  * Marks a class as an implementation of a {@link Service} interface.
@@ -11,7 +9,10 @@ import java.lang.annotation.Target;
  * <p>For every method in {@link #service}, this class must have an equivalent non-static, public
  * method annotated with {@link OperationImpl}. See that annotation's documentation for more
  * details.
+ *
+ * <p>This annotation is not inherited, it must be present on the instance used.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface ServiceImpl {

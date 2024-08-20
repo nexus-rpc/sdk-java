@@ -1,9 +1,7 @@
-package io.nexusrpc;
+package io.nexusrpc.handler;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.nexusrpc.Operation;
+import java.lang.annotation.*;
 
 /**
  * Marks a method on a {@link ServiceImpl} as an implementation of an {@link Operation}.
@@ -14,9 +12,10 @@ import java.lang.annotation.Target;
  * parameter type (or {@link Void} if none) and the second type variable as the operation return
  * type (or {@link Void} if void).
  *
- * <p>The method should not throw any exceptions and will only be called once to get the handler.
- * That handler will be reused for each operation.
+ * <p>The method should not throw any exceptions and will be called once for each the service impl
+ * instance is being created while it is being created.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface OperationImpl {}

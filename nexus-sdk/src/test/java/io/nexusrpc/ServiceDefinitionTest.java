@@ -154,14 +154,11 @@ public class ServiceDefinitionTest {
 
   private static void assertOperationExists(
       ServiceDefinition defn, String name, Type outputType, Type inputType) {
-    assertTrue(
-        defn.getOperations()
-            .contains(
-                OperationDefinition.newBuilder()
-                    .setName(name)
-                    .setOutputType(outputType)
-                    .setInputType(inputType)
-                    .build()));
+    OperationDefinition operation = defn.getOperations().get(name);
+    assertNotNull(operation);
+    assertEquals(name, operation.getName());
+    assertEquals(outputType, operation.getOutputType());
+    assertEquals(inputType, operation.getInputType());
   }
 
   @Test

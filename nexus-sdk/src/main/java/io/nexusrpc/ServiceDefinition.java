@@ -130,9 +130,9 @@ public class ServiceDefinition {
   }
 
   private final String name;
-  private final List<OperationDefinition> operations;
+  private final Map<String, OperationDefinition> operations;
 
-  private ServiceDefinition(String name, List<OperationDefinition> operations) {
+  private ServiceDefinition(String name, Map<String, OperationDefinition> operations) {
     this.name = name;
     this.operations = operations;
   }
@@ -142,8 +142,8 @@ public class ServiceDefinition {
     return name;
   }
 
-  /** Collection of operations. */
-  public List<OperationDefinition> getOperations() {
+  /** Collection of operations by name. */
+  public Map<String, OperationDefinition> getOperations() {
     return operations;
   }
 
@@ -176,10 +176,11 @@ public class ServiceDefinition {
 
     private Builder(ServiceDefinition definition) {
       name = definition.name;
-      operations = new ArrayList<>(definition.operations);
+      // Order does not matter here
+      operations = new ArrayList<>(definition.operations.values());
     }
 
-    /** Set service name, required. */
+    /** Set service name. Required. */
     public Builder setName(String name) {
       this.name = name;
       return this;
@@ -202,15 +203,24 @@ public class ServiceDefinition {
       if (operations.isEmpty()) {
         throw new IllegalStateException("No operations defined");
       }
-      Set<String> seenNames = new HashSet<>();
+      Map<String, OperationDefinition> definitions = new HashMap<>(operations.size());
       for (OperationDefinition operation : operations) {
-        if (seenNames.contains(operation.getName())) {
+        if (definitions.containsKey(operation.getName())) {
           throw new IllegalStateException(
               "Multiple operations named '" + operation.getName() + "'");
         }
-        seenNames.add(operation.getName());
+        if (operation.getMethodName() != null) {
+          if (definitions.values().stream()
+              .anyMatch(other -> operation.getMethodName().equals(other.getMethodName()))) {
+            throw new IllegalStateException(
+                "Multiple operations on the same method name of '"
+                    + operation.getMethodName()
+                    + "'");
+          }
+        }
+        definitions.put(operation.getName(), operation);
       }
-      return new ServiceDefinition(name, Collections.unmodifiableList(new ArrayList<>(operations)));
+      return new ServiceDefinition(name, Collections.unmodifiableMap(definitions));
     }
   }
 }

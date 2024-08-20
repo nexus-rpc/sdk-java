@@ -1,9 +1,6 @@
 package io.nexusrpc;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Operations are interface methods defined on {@link Service} interfaces.
@@ -17,6 +14,7 @@ import java.lang.annotation.Target;
  * <c>throws</c> clause. An operation cannot have a default implementation and cannot be static on
  * the interface.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Operation {

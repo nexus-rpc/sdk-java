@@ -25,6 +25,7 @@ public class OperationDefinition {
     }
     return newBuilder()
         .setName(operation.name().isEmpty() ? method.getName() : operation.name())
+        .setMethodName(method.getName())
         .setInputType(method.getParameterCount() == 0 ? Void.TYPE : method.getParameterTypes()[0])
         .setOutputType(method.getGenericReturnType())
         .build();
@@ -41,11 +42,14 @@ public class OperationDefinition {
   }
 
   private final String name;
+  private final @Nullable String methodName;
   private final Type inputType;
   private final Type outputType;
 
-  private OperationDefinition(String name, Type inputType, Type outputType) {
+  private OperationDefinition(
+      String name, @Nullable String methodName, Type inputType, Type outputType) {
     this.name = name;
+    this.methodName = methodName;
     this.inputType = inputType;
     this.outputType = outputType;
   }
@@ -53,6 +57,14 @@ public class OperationDefinition {
   /** Operation name. */
   public String getName() {
     return name;
+  }
+
+  /**
+   * Method name the operation is on if this was created via reflection. This is mostly used
+   * internally to match with implementation.
+   */
+  public @Nullable String getMethodName() {
+    return methodName;
   }
 
   /** Input type. Will be {@link Void#TYPE} if no input type. */
@@ -71,13 +83,14 @@ public class OperationDefinition {
     if (o == null || getClass() != o.getClass()) return false;
     OperationDefinition that = (OperationDefinition) o;
     return Objects.equals(name, that.name)
+        && Objects.equals(methodName, that.methodName)
         && Objects.equals(inputType, that.inputType)
         && Objects.equals(outputType, that.outputType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, inputType, outputType);
+    return Objects.hash(name, methodName, inputType, outputType);
   }
 
   @Override
@@ -85,6 +98,9 @@ public class OperationDefinition {
     return "OperationDefinition{"
         + "name='"
         + name
+        + '\''
+        + ", methodName='"
+        + methodName
         + '\''
         + ", inputType="
         + inputType
@@ -96,6 +112,7 @@ public class OperationDefinition {
   /** Builder for an operation definition. */
   public static class Builder {
     @Nullable private String name;
+    @Nullable private String methodName;
     @Nullable private Type inputType;
     @Nullable private Type outputType;
 
@@ -103,23 +120,30 @@ public class OperationDefinition {
 
     private Builder(OperationDefinition definition) {
       name = definition.name;
+      methodName = definition.methodName;
       inputType = definition.inputType;
       outputType = definition.outputType;
     }
 
-    /** Set operation name, required. */
+    /** Set operation name. Required. */
     public Builder setName(String name) {
       this.name = name;
       return this;
     }
 
-    /** Set input type, required. */
+    /** Set reflected operation method name. Optional. */
+    public Builder setMethodName(String methodName) {
+      this.methodName = methodName;
+      return this;
+    }
+
+    /** Set input type.Required. */
     public Builder setInputType(Type inputType) {
       this.inputType = inputType;
       return this;
     }
 
-    /** Set output type, required. */
+    /** Set output type.Required. */
     public Builder setOutputType(Type outputType) {
       this.outputType = outputType;
       return this;
@@ -130,7 +154,7 @@ public class OperationDefinition {
       Objects.requireNonNull(name, "Name required");
       Objects.requireNonNull(inputType, "Input type required");
       Objects.requireNonNull(outputType, "Output type required");
-      return new OperationDefinition(name, inputType, outputType);
+      return new OperationDefinition(name, methodName, inputType, outputType);
     }
   }
 }
