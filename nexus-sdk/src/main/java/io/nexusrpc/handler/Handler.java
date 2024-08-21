@@ -4,7 +4,6 @@ import io.nexusrpc.OperationInfo;
 import io.nexusrpc.OperationNotFoundException;
 import io.nexusrpc.OperationStillRunningException;
 import io.nexusrpc.OperationUnsuccessfulException;
-import java.io.InputStream;
 
 /** Top-level handler for service calls. */
 public interface Handler {
@@ -16,7 +15,7 @@ public interface Handler {
    * <p>If the result is an output stream, it will be closed later by the caller.
    */
   OperationStartResult<HandlerResultContent> startOperation(
-      OperationContext context, OperationStartDetails details, InputStream input)
+      OperationContext context, OperationStartDetails details, HandlerInputContent input)
       throws UnrecognizedOperationException, OperationUnsuccessfulException;
 
   /**

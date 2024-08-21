@@ -33,12 +33,9 @@ public class ServiceHandlerTest {
     // Call synchronous form
     OperationStartResult<HandlerResultContent> result =
         handler.startOperation(
-            OperationContext.newBuilder()
-                .setService("GreetingService")
-                .setOperation("sayHello1")
-                .build(),
+            newGreetingServiceContext("sayHello1"),
             OperationStartDetails.newBuilder().setRequestId("request-id-1").build(),
-            new ByteArrayInputStream("SomeUser".getBytes(StandardCharsets.UTF_8)));
+            newSimpleInputContent("SomeUser"));
     assertEquals(
         "Hello, SomeUser!",
         new String(
@@ -48,12 +45,9 @@ public class ServiceHandlerTest {
     // Call handler form with sync-prefixed name which uses synchronous handling
     result =
         handler.startOperation(
-            OperationContext.newBuilder()
-                .setService("GreetingService")
-                .setOperation("sayHello2")
-                .build(),
+            newGreetingServiceContext("sayHello2"),
             OperationStartDetails.newBuilder().setRequestId("request-id-2").build(),
-            new ByteArrayInputStream("sync-SomeUser".getBytes(StandardCharsets.UTF_8)));
+            newSimpleInputContent("sync-SomeUser"));
     assertEquals(
         "Hello, sync-SomeUser!",
         new String(
@@ -72,42 +66,43 @@ public class ServiceHandlerTest {
     // Now call
     result =
         handler.startOperation(
-            OperationContext.newBuilder()
-                .setService("GreetingService")
-                .setOperation("sayHello2")
-                .build(),
+            newGreetingServiceContext("sayHello2"),
             OperationStartDetails.newBuilder().setRequestId("request-id-3").build(),
-            new ByteArrayInputStream("SomeUser".getBytes(StandardCharsets.UTF_8)));
+            newSimpleInputContent("SomeUser"));
     String operationId = Objects.requireNonNull(result.getAsyncOperationId());
     // Confirm future is waiting and info says it's running
     OperationInfo info =
         handler.fetchOperationInfo(
-            OperationContext.newBuilder()
-                .setService("GreetingService")
-                .setOperation("sayHello2")
-                .build(),
+            newGreetingServiceContext("sayHello2"),
             OperationFetchInfoDetails.newBuilder().setOperationId(operationId).build());
     assertEquals(OperationState.RUNNING, info.getState());
     // Resolve future and confirm succeeded
     Objects.requireNonNull(pendingFuture.get()).complete("Hello from API, SomeUser!");
     info =
         handler.fetchOperationInfo(
-            OperationContext.newBuilder()
-                .setService("GreetingService")
-                .setOperation("sayHello2")
-                .build(),
+            newGreetingServiceContext("sayHello2"),
             OperationFetchInfoDetails.newBuilder().setOperationId(operationId).build());
     assertEquals(OperationState.SUCCEEDED, info.getState());
     // Check result
     HandlerResultContent content =
         handler.fetchOperationResult(
-            OperationContext.newBuilder()
-                .setService("GreetingService")
-                .setOperation("sayHello2")
-                .build(),
+            newGreetingServiceContext("sayHello2"),
             OperationFetchResultDetails.newBuilder().setOperationId(operationId).build());
     assertEquals(
         "Hello from API, SomeUser!",
         new String(Objects.requireNonNull(content.getDataBytes()), StandardCharsets.UTF_8));
+  }
+
+  private static OperationContext newGreetingServiceContext(String operation) {
+    return OperationContext.newBuilder()
+        .setService("GreetingService")
+        .setOperation(operation)
+        .build();
+  }
+
+  private static HandlerInputContent newSimpleInputContent(String value) {
+    return HandlerInputContent.newBuilder()
+        .setDataStream(new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8)))
+        .build();
   }
 }

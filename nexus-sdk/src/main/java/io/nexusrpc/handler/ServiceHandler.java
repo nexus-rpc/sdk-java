@@ -1,8 +1,6 @@
 package io.nexusrpc.handler;
 
 import io.nexusrpc.*;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.*;
 import org.jspecify.annotations.Nullable;
 
@@ -39,7 +37,7 @@ public class ServiceHandler implements Handler {
   @Override
   @SuppressWarnings("unchecked")
   public OperationStartResult<HandlerResultContent> startOperation(
-      OperationContext context, OperationStartDetails details, InputStream param)
+      OperationContext context, OperationStartDetails details, HandlerInputContent input)
       throws UnrecognizedOperationException, OperationUnsuccessfulException {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
@@ -53,28 +51,19 @@ public class ServiceHandler implements Handler {
     OperationDefinition definition =
         instance.getDefinition().getOperations().get(context.getOperation());
 
-    Object input;
+    Object inputObject;
     try {
-      // Collect entire input stream as byte array. This is unfortunately the best Java-8-safe
-      // approach.
-      ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-      int nRead;
-      byte[] data = new byte[1024];
-      while ((nRead = param.read(data, 0, data.length)) != -1) {
-        buffer.write(data, 0, nRead);
-      }
-
       // Deserialize to expected input type
       Serializer.Content.Builder contentBuilder = Serializer.Content.newBuilder();
-      contentBuilder.setData(buffer.toByteArray());
+      contentBuilder.setData(input.consumeBytes());
       contentBuilder.getHeaders().putAll(context.getHeaders());
-      input = serializer.deserialize(contentBuilder.build(), definition.getInputType());
+      inputObject = serializer.deserialize(contentBuilder.build(), definition.getInputType());
     } catch (Exception e) {
       throw new RuntimeException("Failed deserializing input", e);
     }
 
     // Invoke handler
-    OperationStartResult<?> result = handler.start(context, details, input);
+    OperationStartResult<?> result = handler.start(context, details, inputObject);
 
     // If the result is an async result we can just return, but if it's a sync result we need to
     // serialize back out to bytes
