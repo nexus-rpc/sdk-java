@@ -15,10 +15,7 @@ import org.junit.jupiter.api.Test;
 public class ServiceHandlerTest {
   @Test
   void simpleGreetingService()
-      throws UnrecognizedOperationException,
-          OperationUnsuccessfulException,
-          OperationNotFoundException,
-          OperationStillRunningException {
+      throws OperationUnsuccessfulException, OperationStillRunningException {
     // Create API client
     AtomicReference<ApiClient> apiClientInternal = new AtomicReference<>();
     ApiClient apiClient = name -> apiClientInternal.get().createGreeting(name);

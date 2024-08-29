@@ -51,7 +51,7 @@ public class GreetingServiceImpl {
 
     @Override
     public String fetchResult(OperationContext context, OperationFetchResultDetails details)
-        throws OperationNotFoundException, OperationStillRunningException {
+        throws OperationStillRunningException {
       Future<String> operation = getOperation(details.getOperationId());
       try {
         // When timeout missing, be done or fail
@@ -78,8 +78,7 @@ public class GreetingServiceImpl {
     }
 
     @Override
-    public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
-        throws OperationNotFoundException {
+    public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details) {
       Future<String> operation = getOperation(details.getOperationId());
       OperationState state;
       if (operation.isCancelled()) {
@@ -98,15 +97,15 @@ public class GreetingServiceImpl {
     }
 
     @Override
-    public void cancel(OperationContext context, OperationCancelDetails details)
-        throws OperationNotFoundException {
+    public void cancel(OperationContext context, OperationCancelDetails details) {
       getOperation(details.getOperationId()).cancel(true);
     }
 
-    private Future<String> getOperation(String id) throws OperationNotFoundException {
+    private Future<String> getOperation(String id) {
       Future<String> operation = operations.get(id);
       if (operation == null) {
-        throw new OperationNotFoundException();
+        throw new OperationHandlerException(
+            OperationHandlerException.ErrorType.NOT_FOUND, "Operation not found for ID: " + id);
       }
       return operation;
     }

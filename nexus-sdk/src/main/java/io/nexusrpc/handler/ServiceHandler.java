@@ -38,15 +38,15 @@ public class ServiceHandler implements Handler {
   @SuppressWarnings("unchecked")
   public OperationStartResult<HandlerResultContent> startOperation(
       OperationContext context, OperationStartDetails details, HandlerInputContent input)
-      throws UnrecognizedOperationException, OperationUnsuccessfulException {
+      throws OperationUnsuccessfulException {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     OperationHandler<Object, Object> handler =
         instance.getOperationHandlers().get(context.getOperation());
     if (handler == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     OperationDefinition definition =
         instance.getDefinition().getOperations().get(context.getOperation());
@@ -77,18 +77,15 @@ public class ServiceHandler implements Handler {
   @Override
   public HandlerResultContent fetchOperationResult(
       OperationContext context, OperationFetchResultDetails details)
-      throws UnrecognizedOperationException,
-          OperationNotFoundException,
-          OperationStillRunningException,
-          OperationUnsuccessfulException {
+      throws OperationStillRunningException, OperationUnsuccessfulException {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     OperationHandler<Object, Object> handler =
         instance.getOperationHandlers().get(context.getOperation());
     if (handler == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     Object result = handler.fetchResult(context, details);
     return resultToContent(result);
@@ -108,33 +105,38 @@ public class ServiceHandler implements Handler {
 
   @Override
   public OperationInfo fetchOperationInfo(
-      OperationContext context, OperationFetchInfoDetails details)
-      throws UnrecognizedOperationException, OperationNotFoundException {
+      OperationContext context, OperationFetchInfoDetails details) {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     OperationHandler<Object, Object> handler =
         instance.getOperationHandlers().get(context.getOperation());
     if (handler == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     return handler.fetchInfo(context, details);
   }
 
   @Override
-  public void cancelOperation(OperationContext context, OperationCancelDetails details)
-      throws UnrecognizedOperationException, OperationNotFoundException {
+  public void cancelOperation(OperationContext context, OperationCancelDetails details) {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     OperationHandler<Object, Object> handler =
         instance.getOperationHandlers().get(context.getOperation());
     if (handler == null) {
-      throw new UnrecognizedOperationException(context.getService(), context.getOperation());
+      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
     handler.cancel(context, details);
+  }
+
+  private static OperationHandlerException newUnrecognizedOperationException(
+      String service, String operation) {
+    return new OperationHandlerException(
+        OperationHandlerException.ErrorType.NOT_FOUND,
+        "Unrecognized service " + service + " or operation " + operation);
   }
 
   /** Builder for operation start details. */
