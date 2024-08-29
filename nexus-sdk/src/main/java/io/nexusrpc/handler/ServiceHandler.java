@@ -56,7 +56,7 @@ public class ServiceHandler implements Handler {
       // Deserialize to expected input type
       Serializer.Content.Builder contentBuilder = Serializer.Content.newBuilder();
       contentBuilder.setData(input.consumeBytes());
-      contentBuilder.getHeaders().putAll(context.getHeaders());
+      contentBuilder.getHeaders().putAll(input.getHeaders());
       inputObject = serializer.deserialize(contentBuilder.build(), definition.getInputType());
     } catch (Exception e) {
       throw new RuntimeException("Failed deserializing input", e);
