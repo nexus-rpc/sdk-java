@@ -5,11 +5,12 @@ plugins {
 }
 
 dependencies {
-    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnly 'org.jspecify:jspecify:1.+'
 
     testImplementation libs.junit.jupiter
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testCompileOnly 'org.jspecify:jspecify:1.+'
 }
 
 java {

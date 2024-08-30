@@ -1,16 +1,18 @@
 package io.nexusrpc;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
- * Services are interfaces that contain {@link Operation} methods. For proxying reasons, this can
- * only be declared on an interface. This annotation is not inherited, so it must be on any
- * sub-interface with the same values or an error will occur. Similarly, an error will occur if an
+ * Services are interfaces that contain {@link Operation} methods.
+ *
+ * <p>This can only be declared on an interface. This annotation is not inherited, so it must be on
+ * any sub-interface with the same name or an error will occur. Similarly, an error will occur if an
  * implementation implements multiple interfaces with this annotation with any different values.
+ *
+ * <p>All methods within (even on super interfaces) must be annotated with {@link Operation} and
+ * must conform to the rules of that annotation. Two operations with the same name are not allowed.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Service {
