@@ -61,6 +61,11 @@ public class OperationHandlerException extends RuntimeException {
      * The server either does not recognize the request method, or it lacks the ability to fulfill
      * the request.
      */
+    NOT_IMPLEMENTED,
+    /**
+     * The server either does not recognize the request method, or it lacks the ability to fulfill
+     * the request.
+     */
     UNAVAILABLE,
     /** Used by gateways to report that a request to a downstream server has timed out. */
     DOWNSTREAM_TIMEOUT
