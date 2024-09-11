@@ -39,13 +39,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout repo
-        if: steps.check_release.outputs.already_exists == 'false'
+        if: ${{ steps.check_release.outputs.already_exists == 'false' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ env.NEXUS_SDK_REF }}
 
       - name: Create release
-        if: steps.check_release.outputs.already_exists == 'false'
+        if: ${{ steps.check_release.outputs.already_exists == 'false' }}
         run: >
           gh release create
           "$NEXUS_SDK_TAG"
