@@ -2,6 +2,7 @@
 plugins {
     id 'java-library'
     id 'com.diffplug.spotless'
+    id 'com.vanniktech.maven.publish' version '0.29.0'
 }
 
 dependencies {
@@ -30,3 +31,62 @@ spotless {
 }
 
 classes.dependsOn 'spotlessApply'
+
+ext.getVersionName = { ->
+    def version = System.getenv('NEXUS_SDK_TAG')
+    if (version == null || version.isEmpty()) {
+        return null
+    }
+
+    // Remove "v" prefix if present
+    if (version.startsWith("v")) {
+        version = version.substring(1)
+    }
+    return version
+}
+
+group = 'io.nexusrpc'
+version = getVersionName()
+
+import com.vanniktech.maven.publish.SonatypeHost
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
+
+    pom {
+        name = 'Nexus Java SDK'
+        description = 'Java SDK for working with Nexus RPC'
+        url = 'https://github.com/nexus-rpc/sdk-java'
+        licenses {
+            license {
+                name = 'MIT License'
+                url = 'https://opensource.org/license/mit'
+            }
+        }
+        scm {
+            connection = 'scm:git@github.com:nexus-rpc/sdk-java.git'
+            developerConnection = 'scm:git@github.com:nexus-rpc/sdk-java.git'
+            url = 'https://github.com/nexus-rpc/sdk-java.git'
+        }
+        developers {
+            developer {
+                id = 'team-sdk'
+                name = 'Temporal.io SDK Team'
+                email = 'team-sdk@temporal.io'
+            }
+        }
+    }
+}
+
+// Make sure there is a tag at publish time
+tasks.whenTaskAdded { task ->
+    if (task.name == 'generateMetadataFileForMavenPublication') {
+        task.doFirst {
+            if (getVersionName() == null) {
+                throw new GradleException('Must set NEXUS_SDK_TAG env var')
+            }
+        }
+    }
+}
