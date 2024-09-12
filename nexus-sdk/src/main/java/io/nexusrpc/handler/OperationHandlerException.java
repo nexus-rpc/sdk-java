@@ -67,7 +67,7 @@ public class OperationHandlerException extends RuntimeException {
      * the request.
      */
     UNAVAILABLE,
-    /** Used by gateways to report that a request to a downstream server has timed out. */
-    DOWNSTREAM_TIMEOUT
+    /** Used by gateways to report that a request to an upstream server has timed out. */
+    UPSTREAM_TIMEOUT
   }
 }
