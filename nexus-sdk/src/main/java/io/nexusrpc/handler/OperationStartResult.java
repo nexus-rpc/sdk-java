@@ -66,7 +66,9 @@ public class OperationStartResult<R> {
 
     private OperationStartResultAsync(String asyncOperationId, List<Link> links) {
       this.asyncOperationId = asyncOperationId;
-      this.links = Collections.unmodifiableList(new ArrayList(links));
+      this.links =
+          Collections.unmodifiableList(
+              new ArrayList(links != null ? links : Collections.emptyList()));
     }
   }
 }
