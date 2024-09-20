@@ -1,5 +1,9 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Link;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -16,20 +20,26 @@ public class OperationStartResult<R> {
 
   /** Create a started asynchronous operation start result with the given operation ID. */
   public static <R> OperationStartResult<R> async(String operationId) {
-    return new OperationStartResult<>(null, operationId);
+    return new OperationStartResult<>(null, new OperationStartResultAsync(operationId, null));
+  }
+
+  /** Create a started asynchronous operation start result with the given operation ID. */
+  public static <R> OperationStartResult<R> async(String operationId, List<Link> links) {
+    return new OperationStartResult<>(null, new OperationStartResultAsync(operationId, links));
   }
 
   private final @Nullable R syncResult;
-  private final @Nullable String asyncOperationId;
+  private final @Nullable OperationStartResultAsync asyncOperationResult;
 
-  private OperationStartResult(@Nullable R syncResult, @Nullable String asyncOperationId) {
+  private OperationStartResult(
+      @Nullable R syncResult, @Nullable OperationStartResultAsync asyncOperationResult) {
     this.syncResult = syncResult;
-    this.asyncOperationId = asyncOperationId;
+    this.asyncOperationResult = asyncOperationResult;
   }
 
   /** Whether this start result is synchronous or asynchronous. */
   public boolean isSync() {
-    return asyncOperationId == null;
+    return asyncOperationResult == null;
   }
 
   /**
@@ -42,6 +52,21 @@ public class OperationStartResult<R> {
 
   /** The asynchronous operation ID. This will be null if the operation result is synchronous. */
   public @Nullable String getAsyncOperationId() {
-    return asyncOperationId;
+    return asyncOperationResult != null ? asyncOperationResult.asyncOperationId : null;
+  }
+
+  /** The links associated with the asynchronous operation. */
+  public List<Link> getLinks() {
+    return asyncOperationResult != null ? asyncOperationResult.links : Collections.emptyList();
+  }
+
+  private static class OperationStartResultAsync {
+    private final @Nullable String asyncOperationId;
+    private final @Nullable List<Link> links;
+
+    private OperationStartResultAsync(String asyncOperationId, List<Link> links) {
+      this.asyncOperationId = asyncOperationId;
+      this.links = Collections.unmodifiableList(new ArrayList(links));
+    }
   }
 }
