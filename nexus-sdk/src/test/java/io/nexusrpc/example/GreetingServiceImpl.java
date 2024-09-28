@@ -2,6 +2,10 @@ package io.nexusrpc.example;
 
 import io.nexusrpc.*;
 import io.nexusrpc.handler.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
 import org.jspecify.annotations.Nullable;
@@ -46,6 +50,17 @@ public class GreetingServiceImpl {
       }
       String id = UUID.randomUUID().toString();
       operations.put(id, apiClient.createGreeting(name));
+      if (name.endsWith("link")) {
+        try {
+          URL url = new URL("http://somepath?k=v");
+          List<Link> links =
+              Collections.singletonList(
+                  Link.newBuilder().setUrl(url).setType("com.example.MyResource").build());
+          return OperationStartResult.<String>newBuilder().setAsyncOperationId(id).setLinks(links).build();
+        } catch (MalformedURLException e) {
+          throw new RuntimeException(e);
+        }
+      }
       return OperationStartResult.async(id);
     }
 

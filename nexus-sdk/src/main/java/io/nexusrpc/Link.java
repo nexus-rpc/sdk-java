@@ -1,6 +1,7 @@
 package io.nexusrpc;
 
 import java.net.URL;
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -37,10 +38,28 @@ public class Link {
     return type;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Link link = (Link) o;
+    return Objects.equals(url, link.url) && Objects.equals(type, link.type);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(url, type);
+  }
+
+  @Override
+  public String toString() {
+    return "Link{" + "url=" + url + ", type='" + type + '\'' + '}';
+  }
+
   /** Builder for link. */
   public static class Builder {
-    @Nullable private URL url;
-    @Nullable private String type;
+    private @Nullable URL url;
+    private @Nullable String type;
 
     private Builder() {}
 

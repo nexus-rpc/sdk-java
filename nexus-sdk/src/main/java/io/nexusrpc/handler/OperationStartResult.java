@@ -1,7 +1,6 @@
 package io.nexusrpc.handler;
 
 import io.nexusrpc.Link;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -13,33 +12,40 @@ import org.jspecify.annotations.Nullable;
  * (created via {@link #async}).
  */
 public class OperationStartResult<R> {
+  /** Create a builder. */
+  public static <R> Builder<R> newBuilder() {
+    return new Builder<R>();
+  }
+
+  /** Create a builder from an existing OperationStartResult. */
+  public static <R> Builder<R> newBuilder(OperationStartResult<R> request) {
+    return new Builder<R>(request);
+  }
+
   /** Create a completed synchronous operation start result from the given value. */
   public static <R> OperationStartResult<R> sync(@Nullable R value) {
-    return new OperationStartResult<>(value, null);
+    return OperationStartResult.<R>newBuilder().setSyncResult(value).build();
   }
 
   /** Create a started asynchronous operation start result with the given operation ID. */
   public static <R> OperationStartResult<R> async(String operationId) {
-    return new OperationStartResult<>(null, new OperationStartResultAsync(operationId, null));
-  }
-
-  /** Create a started asynchronous operation start result with the given operation ID. */
-  public static <R> OperationStartResult<R> async(String operationId, List<Link> links) {
-    return new OperationStartResult<>(null, new OperationStartResultAsync(operationId, links));
+    return OperationStartResult.<R>newBuilder().setAsyncOperationId(operationId).build();
   }
 
   private final @Nullable R syncResult;
-  private final @Nullable OperationStartResultAsync asyncOperationResult;
+  private final @Nullable String asyncOperationId;
+  private final List<Link> links;
 
   private OperationStartResult(
-      @Nullable R syncResult, @Nullable OperationStartResultAsync asyncOperationResult) {
+      @Nullable R syncResult, @Nullable String asyncOperationId, List<Link> links) {
     this.syncResult = syncResult;
-    this.asyncOperationResult = asyncOperationResult;
+    this.asyncOperationId = asyncOperationId;
+    this.links = links;
   }
 
   /** Whether this start result is synchronous or asynchronous. */
   public boolean isSync() {
-    return asyncOperationResult == null;
+    return asyncOperationId == null;
   }
 
   /**
@@ -52,23 +58,52 @@ public class OperationStartResult<R> {
 
   /** The asynchronous operation ID. This will be null if the operation result is synchronous. */
   public @Nullable String getAsyncOperationId() {
-    return asyncOperationResult != null ? asyncOperationResult.asyncOperationId : null;
+    return asyncOperationId;
   }
 
-  /** The links associated with the asynchronous operation. */
+  /** The links associated with the operation. */
   public List<Link> getLinks() {
-    return asyncOperationResult != null ? asyncOperationResult.links : Collections.emptyList();
+    return links;
   }
 
-  private static class OperationStartResultAsync {
-    private final @Nullable String asyncOperationId;
-    private final @Nullable List<Link> links;
+  /** Builder for an OperationStartResult. */
+  public static class Builder<R> {
+    private R syncResult;
+    private @Nullable String asyncOperationId;
+    private @Nullable List<Link> links;
 
-    private OperationStartResultAsync(String asyncOperationId, List<Link> links) {
+    private Builder() {}
+
+    private Builder(OperationStartResult<R> result) {
+      syncResult = result.syncResult;
+      asyncOperationId = result.asyncOperationId;
+      links = result.links;
+    }
+
+    public Builder<R> setSyncResult(R syncResult) {
+      this.syncResult = syncResult;
+      return this;
+    }
+
+    public Builder<R> setAsyncOperationId(String asyncOperationId) {
       this.asyncOperationId = asyncOperationId;
-      this.links =
-          Collections.unmodifiableList(
-              new ArrayList(links != null ? links : Collections.emptyList()));
+      return this;
+    }
+
+    public Builder<R> setLinks(List<Link> links) {
+      this.links = links;
+      return this;
+    }
+
+    public OperationStartResult<R> build() {
+      if (syncResult != null && asyncOperationId != null) {
+        throw new IllegalStateException("Cannot have both sync result and async operation ID");
+      }
+      if (syncResult == null && asyncOperationId == null) {
+        throw new IllegalStateException("Must have either sync result or async operation ID");
+      }
+      return new OperationStartResult<>(
+          syncResult, asyncOperationId, links != null ? links : Collections.emptyList());
     }
   }
 }
