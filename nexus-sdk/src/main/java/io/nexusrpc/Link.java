@@ -85,6 +85,8 @@ public class Link {
 
     /** Build the link. */
     public Link build() {
+      Objects.requireNonNull(url, "URL required");
+      Objects.requireNonNull(type, "Type required");
       return new Link(url, type);
     }
   }

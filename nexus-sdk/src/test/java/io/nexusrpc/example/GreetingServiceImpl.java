@@ -56,7 +56,10 @@ public class GreetingServiceImpl {
           List<Link> links =
               Collections.singletonList(
                   Link.newBuilder().setUrl(url).setType("com.example.MyResource").build());
-          return OperationStartResult.<String>newBuilder().setAsyncOperationId(id).setLinks(links).build();
+          return OperationStartResult.<String>newBuilder()
+              .setAsyncOperationId(id)
+              .setLinks(links)
+              .build();
         } catch (MalformedURLException e) {
           throw new RuntimeException(e);
         }
