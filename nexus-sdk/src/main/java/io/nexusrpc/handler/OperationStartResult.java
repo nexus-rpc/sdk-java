@@ -1,6 +1,7 @@
 package io.nexusrpc.handler;
 
 import io.nexusrpc.Link;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -72,7 +73,9 @@ public class OperationStartResult<R> {
     private @Nullable String asyncOperationId;
     private @Nullable List<Link> links;
 
-    private Builder() {}
+    private Builder() {
+      links = new ArrayList<>();
+    }
 
     private Builder(OperationStartResult<R> result) {
       syncResult = result.syncResult;
@@ -80,18 +83,29 @@ public class OperationStartResult<R> {
       links = result.links;
     }
 
+    /**
+     * Set the synchronous result.
+     *
+     * <p>Cannot be set if the asynchronous operation ID is set.
+     */
     public Builder<R> setSyncResult(R syncResult) {
       this.syncResult = syncResult;
       return this;
     }
 
+    /**
+     * Set the asynchronous operation ID.
+     *
+     * <p>Cannot be set if the synchronous result is set.
+     */
     public Builder<R> setAsyncOperationId(String asyncOperationId) {
       this.asyncOperationId = asyncOperationId;
       return this;
     }
 
-    public Builder<R> setLinks(List<Link> links) {
-      this.links = links;
+    /** Add a link to the operation. */
+    public Builder<R> addLink(Link link) {
+      links.add(link);
       return this;
     }
 
