@@ -7,6 +7,7 @@ import io.nexusrpc.example.ApiClient;
 import io.nexusrpc.example.GreetingServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -56,7 +57,7 @@ public class ServiceHandlerTest {
     AtomicReference<CompletableFuture<String>> pendingFuture = new AtomicReference<>();
     apiClientInternal.set(
         name -> {
-          assertEquals("SomeUser", name);
+          assertTrue(name.startsWith("SomeUser"));
           pendingFuture.set(new CompletableFuture<>());
           return pendingFuture.get();
         });
@@ -88,6 +89,17 @@ public class ServiceHandlerTest {
     assertEquals(
         "Hello from API, SomeUser!",
         new String(Objects.requireNonNull(content.getDataBytes()), StandardCharsets.UTF_8));
+    // Test an async operation with a link
+    OperationStartResult<HandlerResultContent> resultWithLink =
+        handler.startOperation(
+            newGreetingServiceContext("sayHello2"),
+            OperationStartDetails.newBuilder().setRequestId("request-id-4").build(),
+            newSimpleInputContent("SomeUser-link"));
+    Objects.requireNonNull(resultWithLink.getAsyncOperationId());
+    List<Link> links = Objects.requireNonNull(resultWithLink.getLinks());
+    assertEquals(1, links.size());
+    assertEquals("http://somepath?k=v", links.get(0).getUrl().toString());
+    assertEquals("com.example.MyResource", links.get(0).getType());
   }
 
   private static OperationContext newGreetingServiceContext(String operation) {

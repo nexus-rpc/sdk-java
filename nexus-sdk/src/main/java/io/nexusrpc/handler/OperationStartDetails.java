@@ -1,9 +1,7 @@
 package io.nexusrpc.handler;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import io.nexusrpc.Link;
+import java.util.*;
 import org.jspecify.annotations.Nullable;
 
 /** Details for handling operation start. */
@@ -21,12 +19,17 @@ public class OperationStartDetails {
   private final @Nullable String callbackUrl;
   private final Map<String, String> callbackHeaders;
   private final String requestId;
+  private final List<Link> links;
 
   private OperationStartDetails(
-      @Nullable String callbackUrl, Map<String, String> callbackHeaders, String requestId) {
+      @Nullable String callbackUrl,
+      Map<String, String> callbackHeaders,
+      String requestId,
+      List<Link> links) {
     this.callbackUrl = callbackUrl;
     this.callbackHeaders = callbackHeaders;
     this.requestId = requestId;
+    this.links = links;
   }
 
   /**
@@ -48,20 +51,31 @@ public class OperationStartDetails {
     return requestId;
   }
 
+  /**
+   * Links contain arbitrary caller information. Handlers may use these links as metadata on
+   * resources associated with and operation.
+   */
+  public List<Link> getLinks() {
+    return links;
+  }
+
   /** Builder for operation start details. */
   public static class Builder {
     private @Nullable String callbackUrl;
     private final Map<String, String> callbackHeaders;
     private @Nullable String requestId;
+    private final List<Link> links;
 
     private Builder() {
       callbackHeaders = new HashMap<>();
+      links = new ArrayList<>();
     }
 
     private Builder(OperationStartDetails details) {
       callbackUrl = details.callbackUrl;
       callbackHeaders = new HashMap<>(details.callbackHeaders);
       requestId = details.requestId;
+      links = new ArrayList<>(details.links);
     }
 
     /** Set callback URL. */
@@ -87,11 +101,25 @@ public class OperationStartDetails {
       return this;
     }
 
+    /** Add a link. */
+    public Builder addLinks(Link link) {
+      this.links.add(link);
+      return this;
+    }
+
+    /** Get links. */
+    public List<Link> getLinks() {
+      return links;
+    }
+
     /** Build the details. */
     public OperationStartDetails build() {
       Objects.requireNonNull(requestId, "Request ID required");
       return new OperationStartDetails(
-          callbackUrl, Collections.unmodifiableMap(new HashMap<>(callbackHeaders)), requestId);
+          callbackUrl,
+          Collections.unmodifiableMap(new HashMap<>(callbackHeaders)),
+          requestId,
+          Collections.unmodifiableList(new ArrayList<>(links)));
     }
   }
 }
