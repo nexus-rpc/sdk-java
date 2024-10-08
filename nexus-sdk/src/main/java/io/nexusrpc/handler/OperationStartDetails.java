@@ -64,7 +64,7 @@ public class OperationStartDetails {
     private @Nullable String callbackUrl;
     private final Map<String, String> callbackHeaders;
     private @Nullable String requestId;
-    private List<Link> links;
+    private final List<Link> links;
 
     private Builder() {
       callbackHeaders = new HashMap<>();
@@ -75,7 +75,7 @@ public class OperationStartDetails {
       callbackUrl = details.callbackUrl;
       callbackHeaders = new HashMap<>(details.callbackHeaders);
       requestId = details.requestId;
-      links = details.links;
+      links = new ArrayList<>(details.links);
     }
 
     /** Set callback URL. */
@@ -105,6 +105,11 @@ public class OperationStartDetails {
     public Builder addLinks(Link link) {
       this.links.add(link);
       return this;
+    }
+
+    /** Get links. */
+    public List<Link> getLinks() {
+      return links;
     }
 
     /** Build the details. */

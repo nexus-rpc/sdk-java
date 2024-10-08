@@ -71,7 +71,7 @@ public class OperationStartResult<R> {
   public static class Builder<R> {
     private R syncResult;
     private @Nullable String asyncOperationId;
-    private @Nullable List<Link> links;
+    private final List<Link> links;
 
     private Builder() {
       links = new ArrayList<>();
@@ -80,7 +80,7 @@ public class OperationStartResult<R> {
     private Builder(OperationStartResult<R> result) {
       syncResult = result.syncResult;
       asyncOperationId = result.asyncOperationId;
-      links = result.links;
+      links = new ArrayList<>(result.links);
     }
 
     /**
@@ -107,6 +107,11 @@ public class OperationStartResult<R> {
     public Builder<R> addLink(Link link) {
       links.add(link);
       return this;
+    }
+
+    /** Get links. */
+    public List<Link> getLinks() {
+      return links;
     }
 
     public OperationStartResult<R> build() {
