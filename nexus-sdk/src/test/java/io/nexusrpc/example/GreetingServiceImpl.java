@@ -53,7 +53,7 @@ public class GreetingServiceImpl {
           URI url = new URI("http://somepath?k=v");
           return OperationStartResult.<String>newBuilder()
               .setAsyncOperationId(id)
-              .addLink(Link.newBuilder().setURI(url).setType("com.example.MyResource").build())
+              .addLink(Link.newBuilder().setUri(url).setType("com.example.MyResource").build())
               .build();
         } catch (URISyntaxException e) {
           throw new RuntimeException(e);

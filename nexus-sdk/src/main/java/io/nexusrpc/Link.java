@@ -69,7 +69,7 @@ public class Link {
     }
 
     /** Set URI information about the link. It must be URL percent-encoded. */
-    public Link.Builder setURI(URI uri) {
+    public Link.Builder setUri(URI uri) {
       this.uri = uri;
       return this;
     }
