@@ -102,7 +102,7 @@ public class OperationStartDetails {
     }
 
     /** Add a link. */
-    public Builder addLinks(Link link) {
+    public Builder addLink(Link link) {
       this.links.add(link);
       return this;
     }

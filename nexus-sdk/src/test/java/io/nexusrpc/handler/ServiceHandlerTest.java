@@ -98,7 +98,7 @@ public class ServiceHandlerTest {
     Objects.requireNonNull(resultWithLink.getAsyncOperationId());
     List<Link> links = Objects.requireNonNull(resultWithLink.getLinks());
     assertEquals(1, links.size());
-    assertEquals("http://somepath?k=v", links.get(0).getUrl().toString());
+    assertEquals("http://somepath?k=v", links.get(0).getUri().toString());
     assertEquals("com.example.MyResource", links.get(0).getType());
   }
 

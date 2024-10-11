@@ -1,12 +1,12 @@
 package io.nexusrpc;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Link contains a URL and a Type that can be used to decode the URL. Links can contain any
- * arbitrary information as a percent-encoded URL. It can be used to pass information about the
+ * Link contains a URI and a Type that can be used to decode the URI. Links can contain any
+ * arbitrary information as a percent-encoded URI. It can be used to pass information about the
  * caller to the handler, or vice-versa.
  */
 public class Link {
@@ -20,20 +20,20 @@ public class Link {
     return new Link.Builder(info);
   }
 
-  private final URL url;
+  private final URI uri;
   private final String type;
 
-  private Link(URL url, String type) {
-    this.url = url;
+  private Link(URI uri, String type) {
+    this.uri = uri;
     this.type = type;
   }
 
-  /** URL information about the link. */
-  public URL getUrl() {
-    return url;
+  /** URI information about the link. */
+  public URI getUri() {
+    return uri;
   }
 
-  /** Type can describe an actual data type for decoding the URL. */
+  /** Type can describe an actual data type for decoding the URI. */
   public String getType() {
     return type;
   }
@@ -43,39 +43,39 @@ public class Link {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Link link = (Link) o;
-    return Objects.equals(url, link.url) && Objects.equals(type, link.type);
+    return Objects.equals(uri, link.uri) && Objects.equals(type, link.type);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(url, type);
+    return Objects.hash(uri, type);
   }
 
   @Override
   public String toString() {
-    return "Link{" + "url=" + url + ", type='" + type + '\'' + '}';
+    return "Link{" + "uri=" + uri + ", type='" + type + '\'' + '}';
   }
 
   /** Builder for link. */
   public static class Builder {
-    private @Nullable URL url;
+    private @Nullable URI uri;
     private @Nullable String type;
 
     private Builder() {}
 
     private Builder(Link link) {
-      url = link.url;
+      uri = link.uri;
       type = link.type;
     }
 
-    /** Set URL information about the link. It must be URL percent-encoded. */
-    public Link.Builder setUrl(URL url) {
-      this.url = url;
+    /** Set URI information about the link. It must be URL percent-encoded. */
+    public Link.Builder setUri(URI uri) {
+      this.uri = uri;
       return this;
     }
 
     /**
-     * Type can describe an actual data type for decoding the URL. Valid chars: alphanumeric, '_',
+     * Type can describe an actual data type for decoding the URI. Valid chars: alphanumeric, '_',
      * '.', '/'
      */
     public Link.Builder setType(String type) {
@@ -85,9 +85,9 @@ public class Link {
 
     /** Build the link. */
     public Link build() {
-      Objects.requireNonNull(url, "URL required");
+      Objects.requireNonNull(uri, "URI required");
       Objects.requireNonNull(type, "Type required");
-      return new Link(url, type);
+      return new Link(uri, type);
     }
   }
 }

@@ -2,8 +2,8 @@ package io.nexusrpc.example;
 
 import io.nexusrpc.*;
 import io.nexusrpc.handler.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 import java.util.concurrent.*;
 import org.jspecify.annotations.Nullable;
@@ -50,12 +50,12 @@ public class GreetingServiceImpl {
       operations.put(id, apiClient.createGreeting(name));
       if (name.endsWith("link")) {
         try {
-          URL url = new URL("http://somepath?k=v");
+          URI url = new URI("http://somepath?k=v");
           return OperationStartResult.<String>newBuilder()
               .setAsyncOperationId(id)
-              .addLink(Link.newBuilder().setUrl(url).setType("com.example.MyResource").build())
+              .addLink(Link.newBuilder().setUri(url).setType("com.example.MyResource").build())
               .build();
-        } catch (MalformedURLException e) {
+        } catch (URISyntaxException e) {
           throw new RuntimeException(e);
         }
       }
