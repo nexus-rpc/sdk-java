@@ -18,10 +18,15 @@ public class ServiceHandler implements Handler {
 
   private final Map<String, ServiceImplInstance> instances;
   private final Serializer serializer;
+  private final ServiceHandlerInterceptor[] interceptors;
 
-  private ServiceHandler(Map<String, ServiceImplInstance> instances, Serializer serializer) {
+  private ServiceHandler(
+      Map<String, ServiceImplInstance> instances,
+      Serializer serializer,
+      ServiceHandlerInterceptor[] interceptors) {
     this.instances = instances;
     this.serializer = serializer;
+    this.interceptors = interceptors;
   }
 
   /** Instances, by service name. */
@@ -32,6 +37,14 @@ public class ServiceHandler implements Handler {
   /** Serializer used for input/output. */
   public Serializer getSerializer() {
     return serializer;
+  }
+
+  private OperationInterceptor getOperationInterceptor(OperationHandler<Object, Object> handler) {
+    OperationInterceptor operationInterceptor = new RootOperationInterceptor(handler);
+    for (ServiceHandlerInterceptor serviceInterceptor : interceptors) {
+      operationInterceptor = serviceInterceptor.interceptOperation(operationInterceptor);
+    }
+    return operationInterceptor;
   }
 
   @Override
@@ -63,7 +76,8 @@ public class ServiceHandler implements Handler {
     }
 
     // Invoke handler
-    OperationStartResult<?> result = handler.start(context, details, inputObject);
+    OperationStartResult<?> result =
+        getOperationInterceptor(handler).start(context, details, inputObject);
 
     // If the result is an async result we can just return, but if it's a sync result we need to
     // serialize back out to bytes
@@ -87,7 +101,7 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    Object result = handler.fetchResult(context, details);
+    Object result = getOperationInterceptor(handler).fetchResult(context, details);
     return resultToContent(result);
   }
 
@@ -115,7 +129,7 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    return handler.fetchInfo(context, details);
+    return getOperationInterceptor(handler).fetchInfo(context, details);
   }
 
   @Override
@@ -129,7 +143,11 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    handler.cancel(context, details);
+    OperationInterceptor operationInterceptor = new RootOperationInterceptor(handler);
+    for (ServiceHandlerInterceptor serviceInterceptor : interceptors) {
+      operationInterceptor = serviceInterceptor.interceptOperation(operationInterceptor);
+    }
+    getOperationInterceptor(handler).cancel(context, details);
   }
 
   private static OperationHandlerException newUnrecognizedOperationException(
@@ -143,6 +161,7 @@ public class ServiceHandler implements Handler {
   public static class Builder {
     private final List<ServiceImplInstance> instances;
     private @Nullable Serializer serializer;
+    private ServiceHandlerInterceptor[] interceptors;
 
     private Builder() {
       this.instances = new ArrayList<>();
@@ -172,6 +191,11 @@ public class ServiceHandler implements Handler {
       return this;
     }
 
+    public Builder setInterceptors(ServiceHandlerInterceptor... interceptors) {
+      this.interceptors = interceptors;
+      return this;
+    }
+
     /** Build the handler. */
     public ServiceHandler build() {
       if (instances.isEmpty()) {
@@ -188,7 +212,10 @@ public class ServiceHandler implements Handler {
         }
         instancesByName.put(instance.getDefinition().getName(), instance);
       }
-      return new ServiceHandler(Collections.unmodifiableMap(instancesByName), serializer);
+      return new ServiceHandler(
+          Collections.unmodifiableMap(instancesByName),
+          serializer,
+          interceptors == null ? new ServiceHandlerInterceptor[0] : interceptors);
     }
   }
 }
