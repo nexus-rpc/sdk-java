@@ -99,6 +99,9 @@ public class OperationStartResult<R> {
      * <p>Cannot be set if the synchronous result is set.
      */
     public Builder<R> setAsyncOperationId(String asyncOperationId) {
+      if (asyncOperationId == null || asyncOperationId.isEmpty()) {
+        throw new IllegalArgumentException("Operation ID cannot be null or empty");
+      }
       this.asyncOperationId = asyncOperationId;
       return this;
     }
@@ -117,9 +120,6 @@ public class OperationStartResult<R> {
     public OperationStartResult<R> build() {
       if (syncResult != null && asyncOperationId != null) {
         throw new IllegalStateException("Cannot have both sync result and async operation ID");
-      }
-      if (syncResult == null && asyncOperationId == null) {
-        throw new IllegalStateException("Must have either sync result or async operation ID");
       }
       return new OperationStartResult<>(
           syncResult, asyncOperationId, links != null ? links : Collections.emptyList());
