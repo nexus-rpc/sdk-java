@@ -15,8 +15,8 @@ public class OperationStartResultTest {
 
   @Test
   void nullSyncResultBuilder() {
-    OperationStartResult<String> result =
-        OperationStartResult.<String>newBuilder().setSyncResult(null).build();
+    String syncResult = null;
+    OperationStartResult<String> result = OperationStartResult.newSyncBuilder(syncResult).build();
     assertTrue(result.isSync());
     assertEquals(null, result.getSyncResult());
   }
@@ -31,11 +31,7 @@ public class OperationStartResultTest {
   @Test
   void nullAsyncOperationIdBuilderFails() {
     // Async result cannot be null
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> OperationStartResult.newBuilder().setAsyncOperationId(null));
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> OperationStartResult.newBuilder().setAsyncOperationId(""));
+    assertThrows(IllegalArgumentException.class, () -> OperationStartResult.newAsyncBuilder(null));
+    assertThrows(IllegalArgumentException.class, () -> OperationStartResult.newAsyncBuilder(""));
   }
 }
