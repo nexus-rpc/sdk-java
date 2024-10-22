@@ -109,7 +109,8 @@ public class ServiceImplInstance {
                         superMethod ->
                             superMethod.getName().equals(method.getName())
                                 && Arrays.equals(
-                                    superMethod.getParameterTypes(), method.getParameterTypes())))
+                                    superMethod.getGenericParameterTypes(),
+                                    method.getGenericParameterTypes())))
         .forEach(methods::add);
     // Do superclass
     if (clazz.getSuperclass() != null && !clazz.getSuperclass().equals(Object.class)) {

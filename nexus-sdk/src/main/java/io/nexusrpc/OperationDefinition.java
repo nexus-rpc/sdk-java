@@ -26,7 +26,8 @@ public class OperationDefinition {
     return newBuilder()
         .setName(operation.name().isEmpty() ? method.getName() : operation.name())
         .setMethodName(method.getName())
-        .setInputType(method.getParameterCount() == 0 ? Void.TYPE : method.getParameterTypes()[0])
+        .setInputType(
+            method.getParameterCount() == 0 ? Void.TYPE : method.getGenericParameterTypes()[0])
         .setOutputType(method.getGenericReturnType())
         .build();
   }
