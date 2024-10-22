@@ -51,8 +51,7 @@ public class GreetingServiceImpl {
       if (name.endsWith("link")) {
         try {
           URI url = new URI("http://somepath?k=v");
-          return OperationStartResult.<String>newBuilder()
-              .setAsyncOperationId(id)
+          return OperationStartResult.<String>newAsyncBuilder(id)
               .addLink(Link.newBuilder().setUri(url).setType("com.example.MyResource").build())
               .build();
         } catch (URISyntaxException e) {
