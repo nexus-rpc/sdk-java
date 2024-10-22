@@ -102,7 +102,8 @@ public class ServiceDefinition {
               possible ->
                   possible.get(0).getName().equals(method.getName())
                       && Arrays.equals(
-                          possible.get(0).getParameterTypes(), method.getParameterTypes()))
+                          possible.get(0).getGenericParameterTypes(),
+                          method.getGenericParameterTypes()))
           .findFirst()
           .orElseGet(
               () -> {
