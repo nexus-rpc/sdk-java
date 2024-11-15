@@ -11,5 +11,11 @@ public class Header {
    */
   public static final String OPERATION_TIMEOUT = "Operation-Timeout";
 
+  /**
+   * Header for the unique ID returned by the StartOperation response for async operations. Must be
+   * set on callback headers to support completing operations before the start response is received.
+   */
+  public static final String HEADER_OPERATION_ID = "Nexus-Operation-Id";
+
   private Header() {}
 }
