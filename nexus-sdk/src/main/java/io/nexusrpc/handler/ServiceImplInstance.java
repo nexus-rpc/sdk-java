@@ -77,19 +77,6 @@ public class ServiceImplInstance {
     if (operationDefinition == null) {
       throw new IllegalStateException("Mo matching @Operation on the service interface");
     }
-
-    // Invoke to get handler
-    Object handler;
-    try {
-      handler = method.invoke(instance);
-    } catch (Exception e) {
-      throw new RuntimeException("Obtaining handler failed", e);
-    }
-    Objects.requireNonNull(handler);
-    if (!(handler instanceof OperationHandler)) {
-      throw new RuntimeException(
-          "Expected handler to be instance of OperationHandler, was " + handler.getClass());
-    }
     // Check the handler type
     ParameterizedType handleType = (ParameterizedType) method.getGenericReturnType();
     if (handleType.getRawType() != OperationHandler.class) {
@@ -112,6 +99,18 @@ public class ServiceImplInstance {
               + operationDefinition.getOutputType().getTypeName()
               + " but got "
               + handleType.getActualTypeArguments()[1].getTypeName());
+    }
+    // Invoke to get handler
+    Object handler;
+    try {
+      handler = method.invoke(instance);
+    } catch (Exception e) {
+      throw new RuntimeException("Obtaining handler failed", e);
+    }
+    Objects.requireNonNull(handler);
+    if (!(handler instanceof OperationHandler)) {
+      throw new RuntimeException(
+          "Expected handler to be instance of OperationHandler, was " + handler.getClass());
     }
 
     // Add to builder
