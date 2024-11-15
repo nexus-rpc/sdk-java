@@ -4,6 +4,7 @@ import io.nexusrpc.OperationDefinition;
 import io.nexusrpc.ServiceDefinition;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import org.jspecify.annotations.Nullable;
 
@@ -88,6 +89,29 @@ public class ServiceImplInstance {
     if (!(handler instanceof OperationHandler)) {
       throw new RuntimeException(
           "Expected handler to be instance of OperationHandler, was " + handler.getClass());
+    }
+    // Check the handler type
+    ParameterizedType handleType = (ParameterizedType) method.getGenericReturnType();
+    if (handleType.getRawType() != OperationHandler.class) {
+      throw new IllegalArgumentException("Must return an OperationHandler");
+    }
+    if (handleType.getActualTypeArguments().length != 2) {
+      // This should never happen, but just in case
+      throw new IllegalArgumentException("OperationHandler must have two type arguments");
+    }
+    if (handleType.getActualTypeArguments()[0] != operationDefinition.getInputType()) {
+      throw new IllegalArgumentException(
+          "OperationHandler input type mismatch expected "
+              + operationDefinition.getInputType().getTypeName()
+              + " but got "
+              + handleType.getActualTypeArguments()[0].getTypeName());
+    }
+    if (handleType.getActualTypeArguments()[1] != operationDefinition.getOutputType()) {
+      throw new IllegalArgumentException(
+          "OperationHandler output type mismatch expected "
+              + operationDefinition.getOutputType().getTypeName()
+              + " but got "
+              + handleType.getActualTypeArguments()[1].getTypeName());
     }
 
     // Add to builder
