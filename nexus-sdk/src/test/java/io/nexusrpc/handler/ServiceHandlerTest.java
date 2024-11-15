@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.nexusrpc.*;
 import io.nexusrpc.example.ApiClient;
 import io.nexusrpc.example.GreetingServiceImpl;
+import io.nexusrpc.example.TestServices;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -14,6 +15,75 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 public class ServiceHandlerTest {
+  @ServiceImpl(service = TestServices.GenericService.class)
+  public class GenericServiceMissingOperationImpl {}
+
+  @ServiceImpl(service = TestServices.GenericService.class)
+  public class GenericServiceMismatchOutputArgumentImpl {
+    @OperationImpl
+    public OperationHandler<String, Integer> operation() {
+      return OperationHandler.sync((ctx, details, name) -> 0);
+    }
+  }
+
+  @ServiceImpl(service = TestServices.GenericService.class)
+  public class GenericServiceNotReturningAnOperationHandleImpl {
+    @OperationImpl
+    public Integer operation() {
+      return 0;
+    }
+  }
+
+  @ServiceImpl(service = TestServices.GenericService.class)
+  public class GenericServiceMismatchInputArgumentImpl {
+    @OperationImpl
+    public OperationHandler<Integer, String> operation() {
+      return OperationHandler.sync((ctx, details, name) -> "");
+    }
+  }
+
+  @Test
+  void serviceImplMissingOperation() {
+    assertThrows(
+        RuntimeException.class,
+        () -> ServiceImplInstance.fromInstance(new GenericServiceMissingOperationImpl()));
+  }
+
+  @Test
+  void serviceImplNotReturningAnOperationHandle() {
+    assertThrows(
+        RuntimeException.class,
+        () ->
+            ServiceImplInstance.fromInstance(
+                new GenericServiceNotReturningAnOperationHandleImpl()));
+  }
+
+  @Test
+  void serviceImplMismatchOutputArgument() {
+    RuntimeException ex =
+        assertThrows(
+            RuntimeException.class,
+            () -> ServiceImplInstance.fromInstance(new GenericServiceMismatchOutputArgumentImpl()));
+    assertTrue(
+        ex.getCause()
+            .getMessage()
+            .contains(
+                "OperationHandler output type mismatch expected java.lang.String but got java.lang.Integer"));
+  }
+
+  @Test
+  void serviceImplMismatchInputArgument() {
+    RuntimeException ex =
+        assertThrows(
+            RuntimeException.class,
+            () -> ServiceImplInstance.fromInstance(new GenericServiceMismatchInputArgumentImpl()));
+    assertTrue(
+        ex.getCause()
+            .getMessage()
+            .contains(
+                "OperationHandler input type mismatch expected java.lang.String but got java.lang.Integer"));
+  }
+
   @Test
   void simpleGreetingService()
       throws OperationUnsuccessfulException, OperationStillRunningException {
