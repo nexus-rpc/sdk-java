@@ -27,6 +27,14 @@ public class ServiceHandlerTest {
   }
 
   @ServiceImpl(service = TestServices.GenericService.class)
+  public class GenericServiceNotReturningAnOperationHandleImpl {
+    @OperationImpl
+    public Integer operation() {
+      return 0;
+    }
+  }
+
+  @ServiceImpl(service = TestServices.GenericService.class)
   public class GenericServiceMismatchInputArgumentImpl {
     @OperationImpl
     public OperationHandler<Integer, String> operation() {
@@ -39,6 +47,15 @@ public class ServiceHandlerTest {
     assertThrows(
         RuntimeException.class,
         () -> ServiceImplInstance.fromInstance(new GenericServiceMissingOperationImpl()));
+  }
+
+  @Test
+  void serviceImplNotReturningAnOperationHandle() {
+    assertThrows(
+        RuntimeException.class,
+        () ->
+            ServiceImplInstance.fromInstance(
+                new GenericServiceNotReturningAnOperationHandleImpl()));
   }
 
   @Test

@@ -78,10 +78,10 @@ public class ServiceImplInstance {
       throw new IllegalStateException("Mo matching @Operation on the service interface");
     }
     // Check the handler type
-    ParameterizedType handleType = (ParameterizedType) method.getGenericReturnType();
-    if (handleType.getRawType() != OperationHandler.class) {
+    if (method.getReturnType() != OperationHandler.class) {
       throw new IllegalArgumentException("Must return an OperationHandler");
     }
+    ParameterizedType handleType = (ParameterizedType) method.getGenericReturnType();
     if (handleType.getActualTypeArguments().length != 2) {
       // This should never happen, but just in case
       throw new IllegalArgumentException("OperationHandler must have two type arguments");
