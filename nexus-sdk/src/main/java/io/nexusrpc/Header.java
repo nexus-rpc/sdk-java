@@ -11,5 +11,19 @@ public class Header {
    */
   public static final String OPERATION_TIMEOUT = "Operation-Timeout";
 
+  /**
+   * Header for the unique ID returned by the StartOperation response for async operations. Must be
+   * set on callback headers to support completing operations before the start response is received.
+   */
+  public static final String OPERATION_ID = "Nexus-Operation-Id";
+
+  /**
+   * Header for to set time the operation started. Used when a completion request is received before
+   * a started response. Should be in a valid HTTP/1.1 format per
+   * https://www.rfc-editor.org/rfc/rfc5322.html#section-3.3. If is omitted, the time the completion
+   * is received will be used as operation start time.
+   */
+  public static final String OPERATION_START_TIME = "Nexus-Operation-Start-Time";
+
   private Header() {}
 }
