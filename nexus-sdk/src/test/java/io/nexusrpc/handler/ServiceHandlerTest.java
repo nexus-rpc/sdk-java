@@ -8,10 +8,13 @@ import io.nexusrpc.example.GreetingServiceImpl;
 import io.nexusrpc.example.TestServices;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 public class ServiceHandlerTest {
@@ -170,6 +173,179 @@ public class ServiceHandlerTest {
     assertEquals(1, links.size());
     assertEquals("http://somepath?k=v", links.get(0).getUri().toString());
     assertEquals("com.example.MyResource", links.get(0).getType());
+  }
+
+  @Test
+  void serviceWithInterceptor()
+      throws OperationUnsuccessfulException, OperationStillRunningException {
+    // Create API client
+    AtomicReference<ApiClient> apiClientInternal = new AtomicReference<>();
+    ApiClient apiClient = name -> apiClientInternal.get().createGreeting(name);
+
+    String authToken = "auth-token";
+
+    LoggingInterceptor loggingInterceptor = new LoggingInterceptor();
+    // Create service handler
+    ServiceHandler handler =
+        ServiceHandler.newBuilder()
+            .setSerializer(new StringOnlySerializer())
+            .addInstance(ServiceImplInstance.fromInstance(new GreetingServiceImpl(apiClient)))
+            .addOperationMiddleware(new AuthInterceptor(authToken))
+            .addOperationMiddleware(loggingInterceptor)
+            .build();
+
+    // Call synchronous form with valid auth token
+    OperationStartResult<HandlerResultContent> result =
+        handler.startOperation(
+            OperationContext.newBuilder()
+                .setService("GreetingService")
+                .setOperation("sayHello1")
+                .putHeader(AuthInterceptor.AUTH_HEADER, authToken)
+                .build(),
+            OperationStartDetails.newBuilder().setRequestId("request-id-1").build(),
+            newSimpleInputContent("SomeUser"));
+    assertEquals(
+        "Hello, SomeUser!",
+        new String(
+            Objects.requireNonNull(Objects.requireNonNull(result.getSyncResult()).getDataBytes()),
+            StandardCharsets.UTF_8));
+    // Call synchronous form with invalid auth token
+    assertThrows(
+        OperationHandlerException.class,
+        () ->
+            handler.startOperation(
+                OperationContext.newBuilder()
+                    .setService("GreetingService")
+                    .setOperation("sayHello1")
+                    .build(),
+                OperationStartDetails.newBuilder().setRequestId("request-id-2").build(),
+                newSimpleInputContent("SomeUser")));
+    // Verify logging interceptor was called and only saw the first operation
+    assertEquals(loggingInterceptor.getOperations(), Collections.singletonList("sayHello1"));
+  }
+
+  private static class LoggingInterceptor implements OperationMiddleware {
+    private List<String> operations = Collections.synchronizedList(new ArrayList<>());
+
+    public List<String> getOperations() {
+      return operations;
+    }
+
+    @Override
+    public OperationHandler<Object, Object> intercept(OperationHandler<Object, Object> next) {
+      return new LoggingOperationMiddleware(operations, next);
+    }
+
+    private static class LoggingOperationMiddleware implements OperationHandler<Object, Object> {
+      private final OperationHandler<Object, Object> next;
+      private final List<String> operations;
+
+      private LoggingOperationMiddleware(
+          List<String> operations, OperationHandler<Object, Object> next) {
+        this.operations = operations;
+        this.next = next;
+      }
+
+      @Override
+      public OperationStartResult<Object> start(
+          OperationContext context, OperationStartDetails details, @Nullable Object param)
+          throws OperationUnsuccessfulException, OperationHandlerException {
+        operations.add(context.getOperation());
+        return next.start(context, details, param);
+      }
+
+      @Override
+      public @Nullable Object fetchResult(
+          OperationContext context, OperationFetchResultDetails details)
+          throws OperationStillRunningException,
+              OperationUnsuccessfulException,
+              OperationHandlerException {
+        operations.add(context.getOperation());
+        return next.fetchResult(context, details);
+      }
+
+      @Override
+      public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
+          throws OperationHandlerException {
+        operations.add(context.getOperation());
+        return next.fetchInfo(context, details);
+      }
+
+      @Override
+      public void cancel(OperationContext context, OperationCancelDetails details)
+          throws OperationHandlerException {
+        operations.add(context.getOperation());
+        next.cancel(context, details);
+      }
+    }
+  }
+
+  private static class AuthInterceptor implements OperationMiddleware {
+    public static final String AUTH_HEADER = "Authorization";
+    private final String authToken;
+
+    private AuthInterceptor(String authToken) {
+      this.authToken = authToken;
+    }
+
+    @Override
+    public OperationHandler<Object, Object> intercept(OperationHandler<Object, Object> next) {
+      return new AuthOperationMiddleware(authToken, next);
+    }
+
+    private static class AuthOperationMiddleware implements OperationHandler<Object, Object> {
+      private final String authToken;
+      private final OperationHandler<Object, Object> next;
+
+      private AuthOperationMiddleware(String authToken, OperationHandler<Object, Object> next) {
+        this.authToken = authToken;
+        this.next = next;
+      }
+
+      @Override
+      public OperationStartResult<Object> start(
+          OperationContext context, OperationStartDetails details, @Nullable Object param)
+          throws OperationUnsuccessfulException, OperationHandlerException {
+        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
+          throw new OperationHandlerException(
+              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
+        }
+        return next.start(context, details, param);
+      }
+
+      @Override
+      public @Nullable Object fetchResult(
+          OperationContext context, OperationFetchResultDetails details)
+          throws OperationStillRunningException,
+              OperationUnsuccessfulException,
+              OperationHandlerException {
+        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
+          throw new OperationHandlerException(
+              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
+        }
+        return next.fetchResult(context, details);
+      }
+
+      @Override
+      public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
+          throws OperationHandlerException {
+        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
+          throw new OperationHandlerException(
+              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
+        }
+        return next.fetchInfo(context, details);
+      }
+
+      @Override
+      public void cancel(OperationContext context, OperationCancelDetails details)
+          throws OperationHandlerException {
+        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
+          throw new OperationHandlerException(
+              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
+        }
+        next.cancel(context, details);
+      }
+    }
   }
 
   private static OperationContext newGreetingServiceContext(String operation) {

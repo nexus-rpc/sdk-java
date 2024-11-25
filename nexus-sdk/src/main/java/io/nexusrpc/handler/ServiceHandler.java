@@ -191,13 +191,16 @@ public class ServiceHandler implements Handler {
       return this;
     }
 
-    /** Add a middleware to the Service Handler. */
+    /**
+     * Add a {@link OperationMiddleware} to the Service Handler. Middlewares are executed per
+     * request in the order they are added.
+     */
     public Builder addOperationMiddleware(OperationMiddleware middleware) {
       middlewares.add(middleware);
       return this;
     }
 
-    /** Get links. */
+    /** Get a list of all {@link OperationMiddleware} registered on this handler. */
     public List<OperationMiddleware> getMiddlewares() {
       return middlewares;
     }
@@ -219,7 +222,9 @@ public class ServiceHandler implements Handler {
         instancesByName.put(instance.getDefinition().getName(), instance);
       }
       return new ServiceHandler(
-          Collections.unmodifiableMap(instancesByName), serializer, middlewares);
+          Collections.unmodifiableMap(instancesByName),
+          serializer,
+          Collections.unmodifiableList(middlewares));
     }
   }
 }
