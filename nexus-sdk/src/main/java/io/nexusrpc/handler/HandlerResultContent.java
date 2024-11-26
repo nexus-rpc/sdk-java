@@ -2,6 +2,7 @@ package io.nexusrpc.handler;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Content that can be fixed or streaming as a result of an operation. */
@@ -37,7 +38,7 @@ public class HandlerResultContent {
     return dataStream;
   }
 
-  /** Headers. */
+  /** Headers. The returned map operates without regard to case. */
   public Map<String, String> getHeaders() {
     return headers;
   }
@@ -61,16 +62,16 @@ public class HandlerResultContent {
   public static class Builder {
     private byte @Nullable [] dataBytes;
     private @Nullable InputStream dataStream;
-    private final Map<String, String> headers;
+    private final SortedMap<String, String> headers;
 
     private Builder() {
-      headers = new HashMap<>();
+      headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     }
 
     private Builder(HandlerResultContent content) {
       dataBytes = content.dataBytes;
       dataStream = content.dataStream;
-      headers = new HashMap<>(content.headers);
+      headers = new TreeMap<>(content.headers);
     }
 
     /** Set data. Unsets any data set before. Required. */
@@ -105,8 +106,13 @@ public class HandlerResultContent {
       // TODO(cretz): Most of the time the headers come over immutable
       // anyways, are we unnecessarily introducing overhead copying them every
       // time?
+      Map<String, String> normalizedHeaders =
+          headers.entrySet().stream()
+              .collect(
+                  Collectors.toMap(
+                      entry -> entry.getKey().toLowerCase(), entry -> entry.getValue()));
       return new HandlerResultContent(
-          dataBytes, dataStream, Collections.unmodifiableMap(new HashMap<>(headers)));
+          dataBytes, dataStream, Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)));
     }
   }
 }

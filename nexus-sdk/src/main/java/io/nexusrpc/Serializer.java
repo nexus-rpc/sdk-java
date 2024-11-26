@@ -2,6 +2,7 @@ package io.nexusrpc;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Serializer used to convert values to bytes and vice-versa. */
@@ -38,7 +39,7 @@ public interface Serializer {
       return data;
     }
 
-    /** Headers. */
+    /** Headers. The returned map operates without regard to case. */
     public Map<String, String> getHeaders() {
       return headers;
     }
@@ -59,15 +60,15 @@ public interface Serializer {
     /** Builder for content. */
     public static class Builder {
       private byte @Nullable [] data;
-      private final Map<String, String> headers;
+      private final SortedMap<String, String> headers;
 
       private Builder() {
-        headers = new HashMap<>();
+        headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
       }
 
       private Builder(Content content) {
         data = content.data;
-        headers = new HashMap<>(content.headers);
+        headers = new TreeMap<>(content.headers);
       }
 
       /** Set data. Required. */
@@ -92,7 +93,12 @@ public interface Serializer {
         // TODO(cretz): Most of the time the headers come over immutable
         // anyways, are we unnecessarily introducing overhead copying them every
         // time?
-        return new Content(data, Collections.unmodifiableMap(new HashMap<>(headers)));
+        Map<String, String> normalizedHeaders =
+            headers.entrySet().stream()
+                .collect(
+                    Collectors.toMap(
+                        entry -> entry.getKey().toLowerCase(), entry -> entry.getValue()));
+        return new Content(data, Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)));
       }
     }
   }
