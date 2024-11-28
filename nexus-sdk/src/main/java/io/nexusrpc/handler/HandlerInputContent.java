@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Content that can be fixed or streaming for start operation input. */
@@ -53,7 +54,7 @@ public class HandlerInputContent {
     return buffer.toByteArray();
   }
 
-  /** Headers. */
+  /** Headers. The returned map operates without regard to case. */
   public Map<String, String> getHeaders() {
     return headers;
   }
@@ -61,10 +62,10 @@ public class HandlerInputContent {
   /** Builder for content. */
   public static class Builder {
     private @Nullable InputStream dataStream;
-    private final Map<String, String> headers;
+    private final SortedMap<String, String> headers;
 
     private Builder() {
-      headers = new HashMap<>();
+      headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     }
 
     /** Set data stream. Required. */
@@ -89,8 +90,16 @@ public class HandlerInputContent {
       // TODO(cretz): Most of the time the headers come over immutable
       // anyways, are we unnecessarily introducing overhead copying them every
       // time?
+      SortedMap<String, String> normalizedHeaders =
+          headers.entrySet().stream()
+              .collect(
+                  Collectors.toMap(
+                      (k) -> k.getKey().toLowerCase(),
+                      Map.Entry::getValue,
+                      (a, b) -> a,
+                      () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
       return new HandlerInputContent(
-          dataStream, Collections.unmodifiableMap(new HashMap<>(headers)));
+          dataStream, Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)));
     }
   }
 }

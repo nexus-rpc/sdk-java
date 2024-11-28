@@ -1,9 +1,7 @@
 package io.nexusrpc.handler;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Context for use in operation handling. */
@@ -45,7 +43,7 @@ public class OperationContext {
     return operation;
   }
 
-  /** Headers for the call. */
+  /** Headers for the call. The returned map operates without regard to case. */
   public Map<String, String> getHeaders() {
     return headers;
   }
@@ -120,17 +118,17 @@ public class OperationContext {
   public static class Builder {
     private @Nullable String service;
     private @Nullable String operation;
-    private final Map<String, String> headers;
+    private final SortedMap<String, String> headers;
     private @Nullable OperationMethodCanceller methodCanceller;
 
     private Builder() {
-      headers = new HashMap<>();
+      headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     }
 
     private Builder(OperationContext context) {
       service = context.service;
       operation = context.operation;
-      headers = new HashMap<>(context.headers);
+      headers = new TreeMap<>(context.headers);
     }
 
     /** Set service. Required. */
@@ -145,7 +143,7 @@ public class OperationContext {
       return this;
     }
 
-    /** Get headers to mutate. */
+    /** Get headers to mutate. The returned map operates without regard to case. */
     public Map<String, String> getHeaders() {
       return headers;
     }
@@ -166,8 +164,19 @@ public class OperationContext {
     public OperationContext build() {
       Objects.requireNonNull(service, "Service required");
       Objects.requireNonNull(operation, "Operation required");
+      SortedMap<String, String> normalizedHeaders =
+          headers.entrySet().stream()
+              .collect(
+                  Collectors.toMap(
+                      (k) -> k.getKey().toLowerCase(),
+                      Map.Entry::getValue,
+                      (a, b) -> a,
+                      () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
       return new OperationContext(
-          service, operation, Collections.unmodifiableMap(new HashMap<>(headers)), methodCanceller);
+          service,
+          operation,
+          Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)),
+          methodCanceller);
     }
   }
 }
