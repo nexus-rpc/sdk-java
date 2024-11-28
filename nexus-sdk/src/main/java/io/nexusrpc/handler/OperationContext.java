@@ -164,11 +164,14 @@ public class OperationContext {
     public OperationContext build() {
       Objects.requireNonNull(service, "Service required");
       Objects.requireNonNull(operation, "Operation required");
-      Map<String, String> normalizedHeaders =
+      SortedMap<String, String> normalizedHeaders =
           headers.entrySet().stream()
               .collect(
                   Collectors.toMap(
-                      entry -> entry.getKey().toLowerCase(), entry -> entry.getValue()));
+                      (k) -> k.getKey().toLowerCase(),
+                      Map.Entry::getValue,
+                      (a, b) -> a,
+                      () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
       return new OperationContext(
           service,
           operation,

@@ -93,11 +93,14 @@ public interface Serializer {
         // TODO(cretz): Most of the time the headers come over immutable
         // anyways, are we unnecessarily introducing overhead copying them every
         // time?
-        Map<String, String> normalizedHeaders =
+        SortedMap<String, String> normalizedHeaders =
             headers.entrySet().stream()
                 .collect(
                     Collectors.toMap(
-                        entry -> entry.getKey().toLowerCase(), entry -> entry.getValue()));
+                        (k) -> k.getKey().toLowerCase(),
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
         return new Content(data, Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)));
       }
     }
