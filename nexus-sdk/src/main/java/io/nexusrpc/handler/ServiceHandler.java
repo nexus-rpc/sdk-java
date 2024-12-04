@@ -39,7 +39,7 @@ public class ServiceHandler implements Handler {
     return serializer;
   }
 
-  public List<OperationMiddleware> getMiddlewares() {
+  public List<OperationMiddleware> getOperationMiddlewares() {
     return middlewares;
   }
 
@@ -206,7 +206,7 @@ public class ServiceHandler implements Handler {
     }
 
     /** Get a list of all {@link OperationMiddleware} registered on this handler. */
-    public List<OperationMiddleware> getMiddlewares() {
+    public List<OperationMiddleware> getOperationMiddlewares() {
       return middlewares;
     }
 
@@ -229,7 +229,7 @@ public class ServiceHandler implements Handler {
       return new ServiceHandler(
           Collections.unmodifiableMap(instancesByName),
           serializer,
-          Collections.unmodifiableList(middlewares));
+          Collections.unmodifiableList(new ArrayList<>(middlewares)));
     }
   }
 }
