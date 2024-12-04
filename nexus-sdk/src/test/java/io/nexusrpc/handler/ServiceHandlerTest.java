@@ -176,8 +176,7 @@ public class ServiceHandlerTest {
   }
 
   @Test
-  void serviceWithInterceptor()
-      throws OperationUnsuccessfulException, OperationStillRunningException {
+  void serviceWithMiddleware() throws OperationUnsuccessfulException {
     // Create API client
     AtomicReference<ApiClient> apiClientInternal = new AtomicReference<>();
     ApiClient apiClient = name -> apiClientInternal.get().createGreeting(name);
@@ -232,7 +231,8 @@ public class ServiceHandlerTest {
     }
 
     @Override
-    public OperationHandler<Object, Object> intercept(OperationHandler<Object, Object> next) {
+    public OperationHandler<Object, Object> intercept(
+        OperationContext context, OperationHandler<Object, Object> next) {
       return new LoggingOperationMiddleware(operations, next);
     }
 
@@ -289,62 +289,13 @@ public class ServiceHandlerTest {
     }
 
     @Override
-    public OperationHandler<Object, Object> intercept(OperationHandler<Object, Object> next) {
-      return new AuthOperationMiddleware(authToken, next);
-    }
-
-    private static class AuthOperationMiddleware implements OperationHandler<Object, Object> {
-      private final String authToken;
-      private final OperationHandler<Object, Object> next;
-
-      private AuthOperationMiddleware(String authToken, OperationHandler<Object, Object> next) {
-        this.authToken = authToken;
-        this.next = next;
+    public OperationHandler<Object, Object> intercept(
+        OperationContext context, OperationHandler<Object, Object> next) {
+      if (authToken != context.getHeaders().get(AUTH_HEADER)) {
+        throw new OperationHandlerException(
+            OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
       }
-
-      @Override
-      public OperationStartResult<Object> start(
-          OperationContext context, OperationStartDetails details, @Nullable Object param)
-          throws OperationUnsuccessfulException, OperationHandlerException {
-        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
-          throw new OperationHandlerException(
-              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
-        }
-        return next.start(context, details, param);
-      }
-
-      @Override
-      public @Nullable Object fetchResult(
-          OperationContext context, OperationFetchResultDetails details)
-          throws OperationStillRunningException,
-              OperationUnsuccessfulException,
-              OperationHandlerException {
-        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
-          throw new OperationHandlerException(
-              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
-        }
-        return next.fetchResult(context, details);
-      }
-
-      @Override
-      public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
-          throws OperationHandlerException {
-        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
-          throw new OperationHandlerException(
-              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
-        }
-        return next.fetchInfo(context, details);
-      }
-
-      @Override
-      public void cancel(OperationContext context, OperationCancelDetails details)
-          throws OperationHandlerException {
-        if (authToken != context.getHeaders().get(AUTH_HEADER)) {
-          throw new OperationHandlerException(
-              OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
-        }
-        next.cancel(context, details);
-      }
+      return next;
     }
   }
 
