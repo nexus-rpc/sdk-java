@@ -18,10 +18,15 @@ public class ServiceHandler implements Handler {
 
   private final Map<String, ServiceImplInstance> instances;
   private final Serializer serializer;
+  private final List<OperationMiddleware> middlewares;
 
-  private ServiceHandler(Map<String, ServiceImplInstance> instances, Serializer serializer) {
+  private ServiceHandler(
+      Map<String, ServiceImplInstance> instances,
+      Serializer serializer,
+      List<OperationMiddleware> middlewares) {
     this.instances = instances;
     this.serializer = serializer;
+    this.middlewares = middlewares;
   }
 
   /** Instances, by service name. */
@@ -32,6 +37,20 @@ public class ServiceHandler implements Handler {
   /** Serializer used for input/output. */
   public Serializer getSerializer() {
     return serializer;
+  }
+
+  public List<OperationMiddleware> getOperationMiddlewares() {
+    return middlewares;
+  }
+
+  private OperationHandler<Object, Object> interceptOperationHandler(
+      OperationContext context, OperationHandler<Object, Object> rootHandler) {
+    OperationHandler<Object, Object> handler = rootHandler;
+    ListIterator<OperationMiddleware> li = middlewares.listIterator(middlewares.size());
+    while (li.hasPrevious()) {
+      handler = li.previous().intercept(context, handler);
+    }
+    return handler;
   }
 
   @Override
@@ -48,6 +67,8 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
+    OperationHandler<Object, Object> interceptedHandler =
+        interceptOperationHandler(context, handler);
     OperationDefinition definition =
         instance.getDefinition().getOperations().get(context.getOperation());
 
@@ -63,7 +84,7 @@ public class ServiceHandler implements Handler {
     }
 
     // Invoke handler
-    OperationStartResult<?> result = handler.start(context, details, inputObject);
+    OperationStartResult<?> result = interceptedHandler.start(context, details, inputObject);
 
     // If the result is an async result we can just return, but if it's a sync result we need to
     // serialize back out to bytes
@@ -87,7 +108,7 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    Object result = handler.fetchResult(context, details);
+    Object result = interceptOperationHandler(context, handler).fetchResult(context, details);
     return resultToContent(result);
   }
 
@@ -115,7 +136,7 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    return handler.fetchInfo(context, details);
+    return interceptOperationHandler(context, handler).fetchInfo(context, details);
   }
 
   @Override
@@ -129,7 +150,7 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    handler.cancel(context, details);
+    interceptOperationHandler(context, handler).cancel(context, details);
   }
 
   private static OperationHandlerException newUnrecognizedOperationException(
@@ -143,9 +164,11 @@ public class ServiceHandler implements Handler {
   public static class Builder {
     private final List<ServiceImplInstance> instances;
     private @Nullable Serializer serializer;
+    private List<OperationMiddleware> middlewares;
 
     private Builder() {
       this.instances = new ArrayList<>();
+      this.middlewares = new ArrayList<>();
     }
 
     private Builder(ServiceHandler handler) {
@@ -153,6 +176,7 @@ public class ServiceHandler implements Handler {
       // errors.
       instances = new ArrayList<>(handler.instances.values());
       serializer = handler.serializer;
+      middlewares = new ArrayList<>(handler.middlewares);
     }
 
     /** Get instances to mutate. */
@@ -172,6 +196,20 @@ public class ServiceHandler implements Handler {
       return this;
     }
 
+    /**
+     * Add a {@link OperationMiddleware} to the Service Handler. Middlewares are executed per
+     * request in the order they are added.
+     */
+    public Builder addOperationMiddleware(OperationMiddleware middleware) {
+      middlewares.add(middleware);
+      return this;
+    }
+
+    /** Get a list of all {@link OperationMiddleware} registered on this handler. */
+    public List<OperationMiddleware> getOperationMiddlewares() {
+      return middlewares;
+    }
+
     /** Build the handler. */
     public ServiceHandler build() {
       if (instances.isEmpty()) {
@@ -188,7 +226,10 @@ public class ServiceHandler implements Handler {
         }
         instancesByName.put(instance.getDefinition().getName(), instance);
       }
-      return new ServiceHandler(Collections.unmodifiableMap(instancesByName), serializer);
+      return new ServiceHandler(
+          Collections.unmodifiableMap(instancesByName),
+          serializer,
+          Collections.unmodifiableList(new ArrayList<>(middlewares)));
     }
   }
 }
