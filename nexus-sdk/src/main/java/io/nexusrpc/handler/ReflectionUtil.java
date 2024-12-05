@@ -28,6 +28,6 @@ class ReflectionUtil {
    *     was found.
    */
   static Type wrapTypeIfPrimitive(Type type) {
-    primitiveWrapperTypeMap.getOrDefault(type, type);
+    return primitiveWrapperTypeMap.getOrDefault(type, type);
   }
 }
