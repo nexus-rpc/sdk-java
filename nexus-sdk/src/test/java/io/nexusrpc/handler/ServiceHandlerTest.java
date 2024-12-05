@@ -8,10 +8,7 @@ import io.nexusrpc.example.GreetingServiceImpl;
 import io.nexusrpc.example.TestServices;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jspecify.annotations.Nullable;
@@ -42,6 +39,46 @@ public class ServiceHandlerTest {
     @OperationImpl
     public OperationHandler<Integer, String> operation() {
       return OperationHandler.sync((ctx, details, name) -> "");
+    }
+  }
+
+  @ServiceImpl(service = TestServices.VoidService.class)
+  public class VoidServiceImpl {
+    @OperationImpl
+    public OperationHandler<Void, Void> operation() {
+      return OperationHandler.sync((ctx, details, name) -> null);
+    }
+  }
+
+  @ServiceImpl(service = TestServices.IntService.class)
+  public class IntServiceImpl {
+    @OperationImpl
+    public OperationHandler<Integer, Integer> operation() {
+      return OperationHandler.sync((ctx, details, input) -> 0);
+    }
+  }
+
+  @ServiceImpl(service = TestServices.IntegerService.class)
+  public class IntegerServiceImpl {
+    @OperationImpl
+    public OperationHandler<Integer, Integer> operation() {
+      return OperationHandler.sync((ctx, details, input) -> 0);
+    }
+  }
+
+  @ServiceImpl(service = TestServices.GenericParameterService.class)
+  public class genericParameterServiceImpl {
+    @OperationImpl
+    public OperationHandler<Map<String, List<String>>, Map<String, List<String>>> operation() {
+      return OperationHandler.sync((ctx, details, input) -> null);
+    }
+  }
+
+  @ServiceImpl(service = TestServices.GenericParameterService.class)
+  public class MismatchGenericParameterServiceImpl {
+    @OperationImpl
+    public OperationHandler<Map<String, List<Integer>>, Map<String, List<Integer>>> operation() {
+      return OperationHandler.sync((ctx, details, input) -> null);
     }
   }
 
@@ -85,6 +122,44 @@ public class ServiceHandlerTest {
             .getMessage()
             .contains(
                 "OperationHandler input type mismatch expected java.lang.String but got java.lang.Integer"));
+  }
+
+  @Test
+  void genericServiceImplMismatchInputArgument() {
+    RuntimeException ex =
+        assertThrows(
+            RuntimeException.class,
+            () -> ServiceImplInstance.fromInstance(new MismatchGenericParameterServiceImpl()));
+    assertTrue(
+        ex.getCause()
+            .getMessage()
+            .contains(
+                "OperationHandler input type mismatch expected java.util.Map<java.lang.String, java.util.List<java.lang.String>> but got java.util.Map<java.lang.String, java.util.List<java.lang.Integer>>"));
+  }
+
+  @Test
+  void voidService() {
+    ServiceImplInstance serviceImpl = ServiceImplInstance.fromInstance(new VoidServiceImpl());
+    assertEquals(1, serviceImpl.getOperationHandlers().size());
+  }
+
+  @Test
+  void intService() {
+    ServiceImplInstance serviceImpl = ServiceImplInstance.fromInstance(new IntServiceImpl());
+    assertEquals(1, serviceImpl.getOperationHandlers().size());
+  }
+
+  @Test
+  void integerService() {
+    ServiceImplInstance serviceImpl = ServiceImplInstance.fromInstance(new IntegerServiceImpl());
+    assertEquals(1, serviceImpl.getOperationHandlers().size());
+  }
+
+  @Test
+  void genericParameterService() {
+    ServiceImplInstance serviceImpl =
+        ServiceImplInstance.fromInstance(new genericParameterServiceImpl());
+    assertEquals(1, serviceImpl.getOperationHandlers().size());
   }
 
   @Test

@@ -1,5 +1,7 @@
 package io.nexusrpc.handler;
 
+import static io.nexusrpc.handler.ReflectionUtil.wrapTypeIfPrimitive;
+
 import io.nexusrpc.OperationDefinition;
 import io.nexusrpc.ServiceDefinition;
 import java.lang.reflect.Method;
@@ -86,14 +88,16 @@ public class ServiceImplInstance {
       // This should never happen, but just in case
       throw new IllegalArgumentException("OperationHandler must have two type arguments");
     }
-    if (handleType.getActualTypeArguments()[0] != operationDefinition.getInputType()) {
+    if (!handleType.getActualTypeArguments()[0].equals(
+        wrapTypeIfPrimitive(operationDefinition.getInputType()))) {
       throw new IllegalArgumentException(
           "OperationHandler input type mismatch expected "
               + operationDefinition.getInputType().getTypeName()
               + " but got "
               + handleType.getActualTypeArguments()[0].getTypeName());
     }
-    if (handleType.getActualTypeArguments()[1] != operationDefinition.getOutputType()) {
+    if (!handleType.getActualTypeArguments()[1].equals(
+        wrapTypeIfPrimitive(operationDefinition.getOutputType()))) {
       throw new IllegalArgumentException(
           "OperationHandler output type mismatch expected "
               + operationDefinition.getOutputType().getTypeName()
