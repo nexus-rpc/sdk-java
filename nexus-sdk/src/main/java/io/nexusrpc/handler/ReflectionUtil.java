@@ -6,7 +6,7 @@ import java.util.Map;
 
 class ReflectionUtil {
   /** A map of Primitive types to their respective wrapper types. */
-  private static final Map<Type, Class<?>> primitiveWrapperTypeMap = new HashMap<>(8);
+  private static final Map<Type, Type> primitiveWrapperTypeMap = new HashMap<>(9);
 
   static {
     primitiveWrapperTypeMap.put(void.class, Void.class);
@@ -28,10 +28,6 @@ class ReflectionUtil {
    *     was found.
    */
   static Type wrapTypeIfPrimitive(Type type) {
-    Class<?> clazz = primitiveWrapperTypeMap.get(type);
-    if (clazz != null) {
-      return clazz;
-    }
-    return type;
+    primitiveWrapperTypeMap.getOrDefault(type, type);
   }
 }
