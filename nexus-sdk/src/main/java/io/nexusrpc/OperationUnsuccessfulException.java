@@ -3,27 +3,21 @@ package io.nexusrpc;
 /** An operation has failed or was cancelled. */
 public class OperationUnsuccessfulException extends Exception {
   private final OperationState state;
-  private final FailureInfo failureInfo;
 
-  public OperationUnsuccessfulException(String message) {
-    this(OperationState.FAILED, message);
-  }
-
-  public OperationUnsuccessfulException(OperationState state, String message) {
-    this(state, FailureInfo.newBuilder().setMessage(message).build());
-  }
-
-  public OperationUnsuccessfulException(OperationState state, FailureInfo failureInfo) {
-    super(failureInfo.getMessage());
+  private OperationUnsuccessfulException(OperationState state, Throwable cause) {
+    super(cause);
     this.state = state;
-    this.failureInfo = failureInfo;
+  }
+
+  public static OperationUnsuccessfulException Failure(Throwable cause) {
+    return new OperationUnsuccessfulException(OperationState.FAILED, cause);
+  }
+
+  public static OperationUnsuccessfulException Cancelled(Throwable cause) {
+    return new OperationUnsuccessfulException(OperationState.CANCELLED, cause);
   }
 
   public OperationState getState() {
     return state;
-  }
-
-  public FailureInfo getFailureInfo() {
-    return failureInfo;
   }
 }
