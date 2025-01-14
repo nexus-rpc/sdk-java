@@ -3,14 +3,14 @@ package io.nexusrpc.handler;
 import org.jspecify.annotations.Nullable;
 
 /** Thrown from a handler for any unexpected error. */
-public class OperationHandlerException extends RuntimeException {
+public class HandlerException extends RuntimeException {
   private final ErrorType errorType;
 
-  public OperationHandlerException(ErrorType errorType, String message) {
+  public HandlerException(ErrorType errorType, String message) {
     this(errorType, new RuntimeException(message));
   }
 
-  public OperationHandlerException(ErrorType errorType, @Nullable Throwable cause) {
+  public HandlerException(ErrorType errorType, @Nullable Throwable cause) {
     super(cause == null ? "handler error" : "handler error: " + cause.getMessage(), cause);
     this.errorType = errorType;
   }

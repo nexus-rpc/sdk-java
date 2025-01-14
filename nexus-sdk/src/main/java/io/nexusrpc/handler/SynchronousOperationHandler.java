@@ -1,7 +1,7 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.OperationException;
 import io.nexusrpc.OperationInfo;
-import io.nexusrpc.OperationUnsuccessfulException;
 import org.jspecify.annotations.Nullable;
 
 /** Handler for synchronous operation function. */
@@ -15,7 +15,7 @@ class SynchronousOperationHandler<T, R> implements OperationHandler<T, R> {
   @Override
   public OperationStartResult<R> start(
       OperationContext context, OperationStartDetails details, @Nullable T param)
-      throws OperationUnsuccessfulException {
+      throws OperationException {
     return OperationStartResult.sync(function.apply(context, details, param));
   }
 

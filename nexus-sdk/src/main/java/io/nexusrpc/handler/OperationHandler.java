@@ -1,8 +1,8 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.OperationException;
 import io.nexusrpc.OperationInfo;
 import io.nexusrpc.OperationStillRunningException;
-import io.nexusrpc.OperationUnsuccessfulException;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -37,15 +37,15 @@ public interface OperationHandler<T, R> {
    * @param param Parameter for the operation. This may be null if the parameter was not given.
    * @return The start result which is a synchronous value or an operation ID representing an
    *     asynchronously running operation.
-   * @throws OperationUnsuccessfulException If thrown, can have failure details and state such as
-   *     saying the operation was cancelled.
-   * @throws OperationHandlerException Unexpected failures while running the handler.
-   * @throws RuntimeException Any other exception, will be converted to an {@link
-   *     OperationHandlerException} of type {@link OperationHandlerException.ErrorType#INTERNAL}.
+   * @throws OperationException If thrown, can have failure details and state such as saying the
+   *     operation was cancelled.
+   * @throws HandlerException Unexpected failures while running the handler.
+   * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
+   *     of type {@link HandlerException.ErrorType#INTERNAL}.
    */
   OperationStartResult<R> start(
       OperationContext context, OperationStartDetails details, @Nullable T param)
-      throws OperationUnsuccessfulException, OperationHandlerException;
+      throws OperationException, HandlerException;
 
   /**
    * Fetch the result for an asynchronously started operation.
@@ -56,18 +56,16 @@ public interface OperationHandler<T, R> {
    *     OperationFetchResultDetails#getTimeout()} to see how to react to this value.
    * @return The resulting value upon success.
    * @throws OperationStillRunningException Operation is still running beyond the given timeout.
-   * @throws OperationUnsuccessfulException Operation failed. If thrown, can have failure details
-   *     and state such as saying the operation was cancelled.
-   * @throws OperationHandlerException Unexpected failures while running the handler. This should be
-   *     thrown with a type of {@link OperationHandlerException.ErrorType#NOT_FOUND} if the
-   *     operation ID is not found.
-   * @throws RuntimeException Any other exception, will be converted to an {@link
-   *     OperationHandlerException} of type {@link OperationHandlerException.ErrorType#INTERNAL}.
+   * @throws OperationException Operation failed. If thrown, can have failure details and state such
+   *     as saying the operation was cancelled.
+   * @throws HandlerException Unexpected failures while running the handler. This should be thrown
+   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation ID is not
+   *     found.
+   * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
+   *     of type {@link HandlerException.ErrorType#INTERNAL}.
    */
   @Nullable R fetchResult(OperationContext context, OperationFetchResultDetails details)
-      throws OperationStillRunningException,
-          OperationUnsuccessfulException,
-          OperationHandlerException;
+      throws OperationStillRunningException, OperationException, HandlerException;
 
   /**
    * Fetch information about the asynchronously started operation.
@@ -75,14 +73,14 @@ public interface OperationHandler<T, R> {
    * @param context Context for the call.
    * @param details Details for the call including the operation ID.
    * @return Information about the operation.
-   * @throws OperationHandlerException Unexpected failures while running the handler. This should be
-   *     thrown with a type of {@link OperationHandlerException.ErrorType#NOT_FOUND} if the
-   *     operation ID is not found.
-   * @throws RuntimeException Any other exception, will be converted to an {@link
-   *     OperationHandlerException} of type {@link OperationHandlerException.ErrorType#INTERNAL}.
+   * @throws HandlerException Unexpected failures while running the handler. This should be thrown
+   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation ID is not
+   *     found.
+   * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
+   *     of type {@link HandlerException.ErrorType#INTERNAL}.
    */
   OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
-      throws OperationHandlerException;
+      throws HandlerException;
 
   /**
    * Cancel the asynchronously started operation.
@@ -93,12 +91,11 @@ public interface OperationHandler<T, R> {
    *
    * @param context Context for the call.
    * @param details Details for the call including the operation ID.
-   * @throws OperationHandlerException Unexpected failures while running the handler. This should be
-   *     thrown with a type of {@link OperationHandlerException.ErrorType#NOT_FOUND} if the
-   *     operation ID is not found.
-   * @throws RuntimeException Any other exception, will be converted to an {@link
-   *     OperationHandlerException} of type {@link OperationHandlerException.ErrorType#INTERNAL}.
+   * @throws HandlerException Unexpected failures while running the handler. This should be thrown
+   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation ID is not
+   *     found.
+   * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
+   *     of type {@link HandlerException.ErrorType#INTERNAL}.
    */
-  void cancel(OperationContext context, OperationCancelDetails details)
-      throws OperationHandlerException;
+  void cancel(OperationContext context, OperationCancelDetails details) throws HandlerException;
 }

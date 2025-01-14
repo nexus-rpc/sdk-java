@@ -1,8 +1,8 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.OperationException;
 import io.nexusrpc.OperationInfo;
 import io.nexusrpc.OperationStillRunningException;
-import io.nexusrpc.OperationUnsuccessfulException;
 
 /** Top-level handler for service calls. */
 public interface Handler {
@@ -15,7 +15,7 @@ public interface Handler {
    */
   OperationStartResult<HandlerResultContent> startOperation(
       OperationContext context, OperationStartDetails details, HandlerInputContent input)
-      throws OperationUnsuccessfulException, OperationHandlerException;
+      throws OperationException, HandlerException;
 
   /**
    * Fetch the result for an asynchronously started operation. See {@link
@@ -25,20 +25,18 @@ public interface Handler {
    */
   HandlerResultContent fetchOperationResult(
       OperationContext context, OperationFetchResultDetails details)
-      throws OperationStillRunningException,
-          OperationUnsuccessfulException,
-          OperationHandlerException;
+      throws OperationStillRunningException, OperationException, HandlerException;
 
   /**
    * Fetch information about the asynchronously started operation. See {@link
    * OperationHandler#fetchInfo} for details.
    */
   OperationInfo fetchOperationInfo(OperationContext context, OperationFetchInfoDetails details)
-      throws OperationHandlerException;
+      throws HandlerException;
 
   /**
    * Cancel the asynchronously started operation. See {@link OperationHandler#cancel} for details.
    */
   void cancelOperation(OperationContext context, OperationCancelDetails details)
-      throws OperationHandlerException;
+      throws HandlerException;
 }

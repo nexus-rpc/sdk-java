@@ -163,8 +163,7 @@ public class ServiceHandlerTest {
   }
 
   @Test
-  void simpleGreetingService()
-      throws OperationUnsuccessfulException, OperationStillRunningException {
+  void simpleGreetingService() throws OperationException, OperationStillRunningException {
     // Create API client
     AtomicReference<ApiClient> apiClientInternal = new AtomicReference<>();
     ApiClient apiClient = name -> apiClientInternal.get().createGreeting(name);
@@ -251,7 +250,7 @@ public class ServiceHandlerTest {
   }
 
   @Test
-  void serviceWithMiddleware() throws OperationUnsuccessfulException {
+  void serviceWithMiddleware() throws OperationException {
     // Create API client
     AtomicReference<ApiClient> apiClientInternal = new AtomicReference<>();
     ApiClient apiClient = name -> apiClientInternal.get().createGreeting(name);
@@ -285,7 +284,7 @@ public class ServiceHandlerTest {
             StandardCharsets.UTF_8));
     // Call synchronous form with invalid auth token
     assertThrows(
-        OperationHandlerException.class,
+        HandlerException.class,
         () ->
             handler.startOperation(
                 OperationContext.newBuilder()
@@ -324,7 +323,7 @@ public class ServiceHandlerTest {
       @Override
       public OperationStartResult<Object> start(
           OperationContext context, OperationStartDetails details, @Nullable Object param)
-          throws OperationUnsuccessfulException, OperationHandlerException {
+          throws OperationException, HandlerException {
         operations.add(context.getOperation());
         return next.start(context, details, param);
       }
@@ -332,23 +331,21 @@ public class ServiceHandlerTest {
       @Override
       public @Nullable Object fetchResult(
           OperationContext context, OperationFetchResultDetails details)
-          throws OperationStillRunningException,
-              OperationUnsuccessfulException,
-              OperationHandlerException {
+          throws OperationStillRunningException, OperationException, HandlerException {
         operations.add(context.getOperation());
         return next.fetchResult(context, details);
       }
 
       @Override
       public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
-          throws OperationHandlerException {
+          throws HandlerException {
         operations.add(context.getOperation());
         return next.fetchInfo(context, details);
       }
 
       @Override
       public void cancel(OperationContext context, OperationCancelDetails details)
-          throws OperationHandlerException {
+          throws HandlerException {
         operations.add(context.getOperation());
         next.cancel(context, details);
       }
@@ -367,8 +364,7 @@ public class ServiceHandlerTest {
     public OperationHandler<Object, Object> intercept(
         OperationContext context, OperationHandler<Object, Object> next) {
       if (authToken != context.getHeaders().get(AUTH_HEADER)) {
-        throw new OperationHandlerException(
-            OperationHandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
+        throw new HandlerException(HandlerException.ErrorType.UNAUTHORIZED, "Unauthorized");
       }
       return next;
     }

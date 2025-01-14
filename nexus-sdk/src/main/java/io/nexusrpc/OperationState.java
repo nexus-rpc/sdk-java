@@ -9,5 +9,5 @@ public enum OperationState {
   /** Indicates an operation completed as failed. */
   FAILED,
   /** Indicates an operation completed as canceled. */
-  CANCELLED,
+  CANCELED,
 }
