@@ -100,8 +100,8 @@ public class HandlerException extends RuntimeException {
      */
     UNAUTHORIZED,
     /**
-     * The requested resource could not be found but may be available in the future. Subsequent
-     * requests by the client are permissible but not advised.
+     * The requested resource could not be found but may be available in the future. Clients should not retry this
+     * request unless advised otherwise.
      */
     NOT_FOUND,
     /**
