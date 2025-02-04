@@ -94,7 +94,7 @@ public class GreetingServiceImpl {
       Future<String> operation = getOperation(details.getOperationId());
       OperationState state;
       if (operation.isCancelled()) {
-        state = OperationState.CANCELLED;
+        state = OperationState.CANCELED;
       } else if (!operation.isDone()) {
         state = OperationState.RUNNING;
       } else {
@@ -116,8 +116,8 @@ public class GreetingServiceImpl {
     private Future<String> getOperation(String id) {
       Future<String> operation = operations.get(id);
       if (operation == null) {
-        throw new OperationHandlerException(
-            OperationHandlerException.ErrorType.NOT_FOUND, "Operation not found for ID: " + id);
+        throw new HandlerException(
+            HandlerException.ErrorType.NOT_FOUND, "Operation not found for ID: " + id);
       }
       return operation;
     }

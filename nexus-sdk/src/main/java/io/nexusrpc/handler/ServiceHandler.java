@@ -57,7 +57,7 @@ public class ServiceHandler implements Handler {
   @SuppressWarnings("unchecked")
   public OperationStartResult<HandlerResultContent> startOperation(
       OperationContext context, OperationStartDetails details, HandlerInputContent input)
-      throws OperationUnsuccessfulException {
+      throws OperationException {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
@@ -98,7 +98,7 @@ public class ServiceHandler implements Handler {
   @Override
   public HandlerResultContent fetchOperationResult(
       OperationContext context, OperationFetchResultDetails details)
-      throws OperationStillRunningException, OperationUnsuccessfulException {
+      throws OperationStillRunningException, OperationException {
     ServiceImplInstance instance = instances.get(context.getService());
     if (instance == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
@@ -153,10 +153,10 @@ public class ServiceHandler implements Handler {
     interceptOperationHandler(context, handler).cancel(context, details);
   }
 
-  private static OperationHandlerException newUnrecognizedOperationException(
+  private static HandlerException newUnrecognizedOperationException(
       String service, String operation) {
-    return new OperationHandlerException(
-        OperationHandlerException.ErrorType.NOT_FOUND,
+    return new HandlerException(
+        HandlerException.ErrorType.NOT_FOUND,
         "Unrecognized service " + service + " or operation " + operation);
   }
 

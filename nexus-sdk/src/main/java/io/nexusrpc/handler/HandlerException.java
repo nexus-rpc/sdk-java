@@ -1,40 +1,23 @@
 package io.nexusrpc.handler;
 
-import io.nexusrpc.FailureInfo;
 import org.jspecify.annotations.Nullable;
 
 /** Thrown from a handler for any unexpected error. */
-public class OperationHandlerException extends RuntimeException {
+public class HandlerException extends RuntimeException {
   private final ErrorType errorType;
-  private final FailureInfo failureInfo;
 
-  public OperationHandlerException(ErrorType errorType, String message) {
-    this(errorType, message, null);
+  public HandlerException(ErrorType errorType, String message) {
+    this(errorType, new RuntimeException(message));
   }
 
-  public OperationHandlerException(ErrorType errorType, String message, @Nullable Throwable cause) {
-    this(errorType, FailureInfo.newBuilder().setMessage(message).build(), cause);
-  }
-
-  public OperationHandlerException(ErrorType errorType, FailureInfo failureInfo) {
-    this(errorType, failureInfo, null);
-  }
-
-  public OperationHandlerException(
-      ErrorType errorType, FailureInfo failureInfo, @Nullable Throwable cause) {
-    super(failureInfo.getMessage(), cause);
+  public HandlerException(ErrorType errorType, @Nullable Throwable cause) {
+    super(cause == null ? "handler error" : "handler error: " + cause.getMessage(), cause);
     this.errorType = errorType;
-    this.failureInfo = failureInfo;
   }
 
   /** Error type for this exception. */
   public ErrorType getErrorType() {
     return errorType;
-  }
-
-  /** Failure info, if any, for this exception. */
-  public FailureInfo getFailureInfo() {
-    return failureInfo;
   }
 
   /** Error type that can occur on a handler exception. */

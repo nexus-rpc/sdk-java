@@ -1,6 +1,6 @@
 package io.nexusrpc.handler;
 
-import io.nexusrpc.OperationUnsuccessfulException;
+import io.nexusrpc.OperationException;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -11,5 +11,5 @@ import org.jspecify.annotations.Nullable;
 public interface SynchronousOperationFunction<T, R> {
   /** Invoked every operation start call and expected to return a fixed/synchronous result. */
   @Nullable R apply(OperationContext context, OperationStartDetails details, @Nullable T param)
-      throws OperationUnsuccessfulException;
+      throws OperationException;
 }
