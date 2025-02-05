@@ -23,11 +23,6 @@ public class OperationInfo {
     this.state = state;
   }
 
-  /** Get the operation token. */
-  public String getId() {
-    return token;
-  }
-
   /** State of the operation. */
   public OperationState getState() {
     return state;
