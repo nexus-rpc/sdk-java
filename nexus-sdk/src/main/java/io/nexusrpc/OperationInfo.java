@@ -15,17 +15,17 @@ public class OperationInfo {
     return new Builder(info);
   }
 
-  private final String id;
+  private final String token;
   private final OperationState state;
 
-  private OperationInfo(String id, OperationState state) {
-    this.id = id;
+  private OperationInfo(String token, OperationState state) {
+    this.token = token;
     this.state = state;
   }
 
-  /** ID of the operation. */
+  /** Get the operation token. */
   public String getId() {
-    return id;
+    return token;
   }
 
   /** State of the operation. */
@@ -33,39 +33,44 @@ public class OperationInfo {
     return state;
   }
 
+  /** Token of the operation. */
+  public String getToken() {
+    return token;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationInfo that = (OperationInfo) o;
-    return Objects.equals(id, that.id) && state == that.state;
+    return Objects.equals(token, that.token) && state == that.state;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, state);
+    return Objects.hash(token, state);
   }
 
   @Override
   public String toString() {
-    return "OperationInfo{" + "id='" + id + '\'' + ", state=" + state + '}';
+    return "OperationInfo{" + "token='" + token + '\'' + ", state=" + state + '}';
   }
 
   /** Builder for operation info. */
   public static class Builder {
-    @Nullable private String id;
+    @Nullable private String token;
     @Nullable private OperationState state;
 
     private Builder() {}
 
     private Builder(OperationInfo info) {
-      id = info.id;
+      token = info.token;
       state = info.state;
     }
 
-    /** Set operation ID. Required. */
-    public Builder setId(String id) {
-      this.id = id;
+    /** Set operation token. Required. */
+    public Builder setToken(String token) {
+      this.token = token;
       return this;
     }
 
@@ -77,9 +82,9 @@ public class OperationInfo {
 
     /** Build the info. */
     public OperationInfo build() {
-      Objects.requireNonNull(id, "ID required");
+      Objects.requireNonNull(token, "Operation Token required");
       Objects.requireNonNull(state, "State required");
-      return new OperationInfo(id, state);
+      return new OperationInfo(token, state);
     }
   }
 }

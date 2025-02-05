@@ -214,25 +214,25 @@ public class ServiceHandlerTest {
             newGreetingServiceContext("sayHello2"),
             OperationStartDetails.newBuilder().setRequestId("request-id-3").build(),
             newSimpleInputContent("SomeUser"));
-    String operationId = Objects.requireNonNull(result.getAsyncOperationId());
+    String operationToken = Objects.requireNonNull(result.getAsyncOperationToken());
     // Confirm future is waiting and info says it's running
     OperationInfo info =
         handler.fetchOperationInfo(
             newGreetingServiceContext("sayHello2"),
-            OperationFetchInfoDetails.newBuilder().setOperationId(operationId).build());
+            OperationFetchInfoDetails.newBuilder().setOperationToken(operationToken).build());
     assertEquals(OperationState.RUNNING, info.getState());
     // Resolve future and confirm succeeded
     Objects.requireNonNull(pendingFuture.get()).complete("Hello from API, SomeUser!");
     info =
         handler.fetchOperationInfo(
             newGreetingServiceContext("sayHello2"),
-            OperationFetchInfoDetails.newBuilder().setOperationId(operationId).build());
+            OperationFetchInfoDetails.newBuilder().setOperationToken(operationToken).build());
     assertEquals(OperationState.SUCCEEDED, info.getState());
     // Check result
     HandlerResultContent content =
         handler.fetchOperationResult(
             newGreetingServiceContext("sayHello2"),
-            OperationFetchResultDetails.newBuilder().setOperationId(operationId).build());
+            OperationFetchResultDetails.newBuilder().setOperationToken(operationToken).build());
     assertEquals(
         "Hello from API, SomeUser!",
         new String(Objects.requireNonNull(content.getDataBytes()), StandardCharsets.UTF_8));
@@ -242,7 +242,7 @@ public class ServiceHandlerTest {
             newGreetingServiceContext("sayHello2"),
             OperationStartDetails.newBuilder().setRequestId("request-id-4").build(),
             newSimpleInputContent("SomeUser-link"));
-    Objects.requireNonNull(resultWithLink.getAsyncOperationId());
+    Objects.requireNonNull(resultWithLink.getAsyncOperationToken());
     List<Link> links = Objects.requireNonNull(resultWithLink.getLinks());
     assertEquals(1, links.size());
     assertEquals("http://somepath?k=v", links.get(0).getUri().toString());

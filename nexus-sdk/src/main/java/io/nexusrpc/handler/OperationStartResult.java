@@ -9,8 +9,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Result for {@link OperationHandler#start}.
  *
- * <p>This is either a synchronous result (created via {@link #sync}) or asynchronous operation ID
- * (created via {@link #async}).
+ * <p>This is either a synchronous result (created via {@link #sync}) or asynchronous operation
+ * token (created via {@link #async}).
  */
 public class OperationStartResult<R> {
   /** Create a builder with a synchronous result. */
@@ -18,9 +18,9 @@ public class OperationStartResult<R> {
     return new Builder<R>().setSyncResult(value);
   }
 
-  /** Create a builder with an async operation Id. */
-  public static <R> Builder<R> newAsyncBuilder(String operationId) {
-    return new Builder<R>().setAsyncOperationId(operationId);
+  /** Create a builder with an async operation token. */
+  public static <R> Builder<R> newAsyncBuilder(String operationToken) {
+    return new Builder<R>().setAsyncOperationToken(operationToken);
   }
 
   /** Create a builder from an existing OperationStartResult. */
@@ -33,25 +33,25 @@ public class OperationStartResult<R> {
     return OperationStartResult.newSyncBuilder(value).build();
   }
 
-  /** Create a started asynchronous operation start result with the given operation ID. */
-  public static <R> OperationStartResult<R> async(String operationId) {
-    return OperationStartResult.<R>newAsyncBuilder(operationId).build();
+  /** Create a started asynchronous operation start result with the given operation token. */
+  public static <R> OperationStartResult<R> async(String operationToken) {
+    return OperationStartResult.<R>newAsyncBuilder(operationToken).build();
   }
 
   private final @Nullable R syncResult;
-  private final @Nullable String asyncOperationId;
+  private final @Nullable String asyncOperationToken;
   private final List<Link> links;
 
   private OperationStartResult(
-      @Nullable R syncResult, @Nullable String asyncOperationId, List<Link> links) {
+      @Nullable R syncResult, @Nullable String asyncOperationToken, List<Link> links) {
     this.syncResult = syncResult;
-    this.asyncOperationId = asyncOperationId;
+    this.asyncOperationToken = asyncOperationToken;
     this.links = links;
   }
 
   /** Whether this start result is synchronous or asynchronous. */
   public boolean isSync() {
-    return asyncOperationId == null;
+    return asyncOperationToken == null;
   }
 
   /**
@@ -62,9 +62,9 @@ public class OperationStartResult<R> {
     return syncResult;
   }
 
-  /** The asynchronous operation ID. This will be null if the operation result is synchronous. */
-  public @Nullable String getAsyncOperationId() {
-    return asyncOperationId;
+  /** The asynchronous operation token. This will be null if the operation result is synchronous. */
+  public @Nullable String getAsyncOperationToken() {
+    return asyncOperationToken;
   }
 
   /** The links associated with the operation. */
@@ -75,7 +75,7 @@ public class OperationStartResult<R> {
   /** Builder for an OperationStartResult. */
   public static class Builder<R> {
     private R syncResult;
-    private @Nullable String asyncOperationId;
+    private @Nullable String asyncOperationToken;
     private final List<Link> links;
 
     private Builder() {
@@ -84,14 +84,14 @@ public class OperationStartResult<R> {
 
     private Builder(OperationStartResult<R> result) {
       syncResult = result.syncResult;
-      asyncOperationId = result.asyncOperationId;
+      asyncOperationToken = result.asyncOperationToken;
       links = new ArrayList<>(result.links);
     }
 
     /**
      * Set the synchronous result.
      *
-     * <p>Cannot be set if the asynchronous operation ID is set.
+     * <p>Cannot be set if the asynchronous operation token is set.
      *
      * <p>NOTE: This method is intentionally private, users should use {@link #newSyncBuilder(R)} to
      * create a new builder.
@@ -102,18 +102,18 @@ public class OperationStartResult<R> {
     }
 
     /**
-     * Set the asynchronous operation ID.
+     * Set the asynchronous operation token.
      *
      * <p>Cannot be set if the synchronous result is set.
      *
      * <p>NOTE: This method is intentionally private, users should use {@link
      * #newAsyncBuilder(String)} to create a new builder.
      */
-    private Builder<R> setAsyncOperationId(String asyncOperationId) {
-      if (asyncOperationId == null || asyncOperationId.isEmpty()) {
-        throw new IllegalArgumentException("Operation ID cannot be null or empty");
+    private Builder<R> setAsyncOperationToken(String asyncOperationToken) {
+      if (asyncOperationToken == null || asyncOperationToken.isEmpty()) {
+        throw new IllegalArgumentException("Operation Token cannot be null or empty");
       }
-      this.asyncOperationId = asyncOperationId;
+      this.asyncOperationToken = asyncOperationToken;
       return this;
     }
 
@@ -129,11 +129,11 @@ public class OperationStartResult<R> {
     }
 
     public OperationStartResult<R> build() {
-      if (syncResult != null && asyncOperationId != null) {
-        throw new IllegalStateException("Cannot have both sync result and async operation ID");
+      if (syncResult != null && asyncOperationToken != null) {
+        throw new IllegalStateException("Cannot have both sync result and async operation token");
       }
       return new OperationStartResult<>(
-          syncResult, asyncOperationId, links != null ? links : Collections.emptyList());
+          syncResult, asyncOperationToken, links != null ? links : Collections.emptyList());
     }
   }
 }
