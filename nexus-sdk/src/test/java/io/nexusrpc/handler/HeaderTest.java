@@ -48,6 +48,13 @@ public class HeaderTest {
             HandlerException.RetryBehavior.RETRYABLE);
     assertTrue(he.isRetryable());
     assertEquals(HandlerException.RetryBehavior.RETRYABLE, he.getRetryBehavior());
+    // Verify that an unknown error type is retryable by default and the type is UNKNOWN
+    he =
+        new HandlerException("SOME_UNKNOWN_TYPE", null, HandlerException.RetryBehavior.UNSPECIFIED);
+    assertTrue(he.isRetryable());
+    assertEquals(HandlerException.RetryBehavior.UNSPECIFIED, he.getRetryBehavior());
+    assertEquals(HandlerException.ErrorType.UNKNOWN, he.getErrorType());
+    assertEquals("SOME_UNKNOWN_TYPE", he.getRawErrorType());
   }
 
   @Test

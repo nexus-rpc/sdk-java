@@ -1,5 +1,6 @@
 package io.nexusrpc.handler;
 
+import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 
 /** Thrown from a handler for any unexpected error. */
@@ -29,6 +30,7 @@ public class HandlerException extends RuntimeException {
     NON_RETRYABLE
   }
 
+  private final String rawErrorType;
   private final ErrorType errorType;
   private final RetryBehavior retryBehavior;
 
@@ -47,11 +49,34 @@ public class HandlerException extends RuntimeException {
   public HandlerException(
       ErrorType errorType, @Nullable Throwable cause, RetryBehavior retryBehavior) {
     super(cause == null ? "handler error" : "handler error: " + cause.getMessage(), cause);
+    this.rawErrorType = errorType.name();
     this.errorType = errorType;
     this.retryBehavior = retryBehavior;
   }
 
-  /** Error type for this exception. */
+  public HandlerException(
+      String rawErrorType, @Nullable Throwable cause, RetryBehavior retryBehavior) {
+    super(cause == null ? "handler error" : "handler error: " + cause.getMessage(), cause);
+    this.rawErrorType = rawErrorType;
+    this.errorType =
+        Arrays.stream(ErrorType.values()).anyMatch((t) -> t.name().equals(rawErrorType))
+            ? ErrorType.valueOf(rawErrorType)
+            : ErrorType.UNKNOWN;
+    this.retryBehavior = retryBehavior;
+  }
+
+  /**
+   * Get the raw error type. If the error type is not {@link ErrorType#UNKNOWN}, it will return the
+   * string representation of the error type.
+   */
+  public String getRawErrorType() {
+    return rawErrorType;
+  }
+
+  /**
+   * Error type for this exception. If the error type is not recognized, it will return {@link
+   * ErrorType#UNKNOWN}.
+   */
   public ErrorType getErrorType() {
     return errorType;
   }
@@ -76,14 +101,16 @@ public class HandlerException extends RuntimeException {
       case INTERNAL:
       case UNAVAILABLE:
       case UPSTREAM_TIMEOUT:
-        return true;
+      case UNKNOWN:
       default:
-        throw new IllegalStateException("Unknown error type: " + errorType);
+        return true;
     }
   }
 
   /** Error type that can occur on a handler exception. */
   public enum ErrorType {
+    /** The error type is unknown. Subsequent requests by the client are permissible. */
+    UNKNOWN,
     /**
      * The server cannot or will not process the request due to an apparent client error. Clients
      * should not retry this request unless advised otherwise.
@@ -100,8 +127,8 @@ public class HandlerException extends RuntimeException {
      */
     UNAUTHORIZED,
     /**
-     * The requested resource could not be found but may be available in the future. Clients should not retry this
-     * request unless advised otherwise.
+     * The requested resource could not be found but may be available in the future. Clients should
+     * not retry this request unless advised otherwise.
      */
     NOT_FOUND,
     /**
