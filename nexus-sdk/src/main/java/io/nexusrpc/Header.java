@@ -14,8 +14,17 @@ public class Header {
   /**
    * Header for the unique ID returned by the StartOperation response for async operations. Must be
    * set on callback headers to support completing operations before the start response is received.
+   *
+   * @deprecated Use {@link Header#OPERATION_TOKEN} instead.
    */
-  public static final String OPERATION_ID = "Nexus-Operation-Id";
+  @Deprecated public static final String OPERATION_ID = "Nexus-Operation-Id";
+
+  /**
+   * Header for the unique token returned by the StartOperation response for async operations. Must
+   * be set on callback headers to support completing operations before the start response is
+   * received.
+   */
+  public static final String OPERATION_TOKEN = "Nexus-Operation-Token";
 
   /**
    * Header for to set time the operation started. Used when a completion request is received before

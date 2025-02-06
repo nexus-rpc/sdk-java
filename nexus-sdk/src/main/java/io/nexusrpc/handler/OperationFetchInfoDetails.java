@@ -15,15 +15,15 @@ public class OperationFetchInfoDetails {
     return new Builder(details);
   }
 
-  private final String operationId;
+  private final String operationToken;
 
   private OperationFetchInfoDetails(String operationId) {
-    this.operationId = operationId;
+    this.operationToken = operationId;
   }
 
   /** ID of the operation. */
-  public String getOperationId() {
-    return operationId;
+  public String getOperationToken() {
+    return operationToken;
   }
 
   @Override
@@ -31,39 +31,39 @@ public class OperationFetchInfoDetails {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationFetchInfoDetails that = (OperationFetchInfoDetails) o;
-    return Objects.equals(operationId, that.operationId);
+    return Objects.equals(operationToken, that.operationToken);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(operationId);
+    return Objects.hashCode(operationToken);
   }
 
   @Override
   public String toString() {
-    return "OperationFetchInfoDetails{" + "operationId='" + operationId + '\'' + '}';
+    return "OperationFetchInfoDetails{" + "operationToken='" + operationToken + '\'' + '}';
   }
 
   /** Builder for operation fetch info details. */
   public static class Builder {
-    private @Nullable String operationId;
+    private @Nullable String operationToken;
 
     private Builder() {}
 
     private Builder(OperationFetchInfoDetails details) {
-      operationId = details.operationId;
+      operationToken = details.operationToken;
     }
 
-    /** Set operation ID. Required. */
-    public Builder setOperationId(String operationId) {
-      this.operationId = operationId;
+    /** Set operation token. Required. */
+    public Builder setOperationToken(String operationToken) {
+      this.operationToken = operationToken;
       return this;
     }
 
     /** Build the details. */
     public OperationFetchInfoDetails build() {
-      Objects.requireNonNull(operationId, "Operation ID required");
-      return new OperationFetchInfoDetails(operationId);
+      Objects.requireNonNull(operationToken, "Operation Token required");
+      return new OperationFetchInfoDetails(operationToken);
     }
   }
 }

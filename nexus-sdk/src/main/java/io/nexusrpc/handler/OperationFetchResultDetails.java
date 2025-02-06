@@ -58,7 +58,7 @@ public class OperationFetchResultDetails {
   @Override
   public String toString() {
     return "OperationFetchResultDetails{"
-        + "operationId='"
+        + "operationToken='"
         + operationId
         + '\''
         + ", timeout="
@@ -68,18 +68,18 @@ public class OperationFetchResultDetails {
 
   /** Builder for operation fetch result details. */
   public static class Builder {
-    private @Nullable String operationId;
+    private @Nullable String operationToken;
     private @Nullable Duration timeout;
 
     private Builder() {}
 
     private Builder(OperationFetchResultDetails details) {
-      operationId = details.operationId;
+      operationToken = details.operationId;
     }
 
-    /** Set operation ID. Required. */
-    public Builder setOperationId(String operationId) {
-      this.operationId = operationId;
+    /** Set operation token. Required. */
+    public Builder setOperationToken(String operationToken) {
+      this.operationToken = operationToken;
       return this;
     }
 
@@ -90,8 +90,8 @@ public class OperationFetchResultDetails {
     }
 
     public OperationFetchResultDetails build() {
-      Objects.requireNonNull(operationId, "Operation ID required");
-      return new OperationFetchResultDetails(operationId, timeout);
+      Objects.requireNonNull(operationToken, "Operation Token required");
+      return new OperationFetchResultDetails(operationToken, timeout);
     }
   }
 }

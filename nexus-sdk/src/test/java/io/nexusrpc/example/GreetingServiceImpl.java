@@ -91,7 +91,7 @@ public class GreetingServiceImpl {
 
     @Override
     public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details) {
-      Future<String> operation = getOperation(details.getOperationId());
+      Future<String> operation = getOperation(details.getOperationToken());
       OperationState state;
       if (operation.isCancelled()) {
         state = OperationState.CANCELED;
@@ -105,12 +105,15 @@ public class GreetingServiceImpl {
           state = OperationState.FAILED;
         }
       }
-      return OperationInfo.newBuilder().setId(details.getOperationId()).setState(state).build();
+      return OperationInfo.newBuilder()
+          .setToken(details.getOperationToken())
+          .setState(state)
+          .build();
     }
 
     @Override
     public void cancel(OperationContext context, OperationCancelDetails details) {
-      getOperation(details.getOperationId()).cancel(true);
+      getOperation(details.getOperationToken()).cancel(true);
     }
 
     private Future<String> getOperation(String id) {

@@ -16,15 +16,15 @@ public class OperationCancelDetails {
     return new Builder(details);
   }
 
-  private final String operationId;
+  private final String operationToken;
 
   private OperationCancelDetails(String operationId) {
-    this.operationId = operationId;
+    this.operationToken = operationId;
   }
 
-  /** ID of the operation. */
-  public String getOperationId() {
-    return operationId;
+  /** Get the operation token. */
+  public String getOperationToken() {
+    return operationToken;
   }
 
   @Override
@@ -32,39 +32,39 @@ public class OperationCancelDetails {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationCancelDetails that = (OperationCancelDetails) o;
-    return Objects.equals(operationId, that.operationId);
+    return Objects.equals(operationToken, that.operationToken);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(operationId);
+    return Objects.hashCode(operationToken);
   }
 
   @Override
   public String toString() {
-    return "OperationCancelDetails{" + "operationId='" + operationId + '\'' + '}';
+    return "OperationCancelDetails{" + "operationToken='" + operationToken + '\'' + '}';
   }
 
   /** Builder for operation cancel details. */
   public static class Builder {
-    private @Nullable String operationId;
+    private @Nullable String operationToken;
 
     private Builder() {}
 
     private Builder(OperationCancelDetails details) {
-      operationId = details.operationId;
+      operationToken = details.operationToken;
     }
 
-    /** Set operation ID. Required. */
-    public Builder setOperationId(String operationId) {
-      this.operationId = operationId;
+    /** Set operation token. Required. */
+    public Builder setOperationToken(String operationToken) {
+      this.operationToken = operationToken;
       return this;
     }
 
     /** Build the details. */
     public OperationCancelDetails build() {
-      Objects.requireNonNull(operationId, "Operation ID required");
-      return new OperationCancelDetails(operationId);
+      Objects.requireNonNull(operationToken, "Operation Token is required");
+      return new OperationCancelDetails(operationToken);
     }
   }
 }

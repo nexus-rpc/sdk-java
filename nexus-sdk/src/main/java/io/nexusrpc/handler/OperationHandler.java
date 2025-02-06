@@ -30,12 +30,12 @@ public interface OperationHandler<T, R> {
    *
    * <p>The operation can be synchronous or asynchronous. Synchronous operations can return the
    * result via {@link OperationStartResult#sync}. Asynchronous operations can return the started
-   * operation ID via {@link OperationStartResult#async}.
+   * operation token via {@link OperationStartResult#async}.
    *
    * @param context Context for the call.
    * @param details Details for the call.
    * @param param Parameter for the operation. This may be null if the parameter was not given.
-   * @return The start result which is a synchronous value or an operation ID representing an
+   * @return The start result which is a synchronous value or an operation token representing an
    *     asynchronously running operation.
    * @throws OperationException If thrown, can have failure details and state such as saying the
    *     operation was cancelled.
@@ -51,7 +51,7 @@ public interface OperationHandler<T, R> {
    * Fetch the result for an asynchronously started operation.
    *
    * @param context Context for the call.
-   * @param details Details for the call including the operation ID. The details also contain a
+   * @param details Details for the call including the operation token. The details also contain a
    *     timeout which affects how implementers should implement this function. See {@link
    *     OperationFetchResultDetails#getTimeout()} to see how to react to this value.
    * @return The resulting value upon success.
@@ -59,7 +59,7 @@ public interface OperationHandler<T, R> {
    * @throws OperationException Operation failed. If thrown, can have failure details and state such
    *     as saying the operation was cancelled.
    * @throws HandlerException Unexpected failures while running the handler. This should be thrown
-   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation ID is not
+   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation token is not
    *     found.
    * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
    *     of type {@link HandlerException.ErrorType#INTERNAL}.
@@ -71,10 +71,10 @@ public interface OperationHandler<T, R> {
    * Fetch information about the asynchronously started operation.
    *
    * @param context Context for the call.
-   * @param details Details for the call including the operation ID.
+   * @param details Details for the call including the operation token.
    * @return Information about the operation.
    * @throws HandlerException Unexpected failures while running the handler. This should be thrown
-   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation ID is not
+   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation token is not
    *     found.
    * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
    *     of type {@link HandlerException.ErrorType#INTERNAL}.
@@ -90,9 +90,9 @@ public interface OperationHandler<T, R> {
    * operation not running should just be ignored.
    *
    * @param context Context for the call.
-   * @param details Details for the call including the operation ID.
+   * @param details Details for the call including the operation token.
    * @throws HandlerException Unexpected failures while running the handler. This should be thrown
-   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation ID is not
+   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation token is not
    *     found.
    * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
    *     of type {@link HandlerException.ErrorType#INTERNAL}.
