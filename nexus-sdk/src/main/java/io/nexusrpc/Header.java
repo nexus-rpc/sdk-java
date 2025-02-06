@@ -34,5 +34,12 @@ public class Header {
    */
   public static final String OPERATION_START_TIME = "Nexus-Operation-Start-Time";
 
+  /**
+   * Handlers may specify the Nexus-Request-Retryable header to explicitly instruct a caller whether
+   * to retry a request. Unless specified, retry behavior is determined from the predefined handler
+   * error type. For example INTERNAL errors is not retryable by default unless specified otherwise.
+   */
+  public static final String RETRYABLE = "Nexus-Request-Retryable";
+
   private Header() {}
 }

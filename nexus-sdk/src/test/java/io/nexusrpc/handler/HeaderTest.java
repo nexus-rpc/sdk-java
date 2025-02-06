@@ -1,6 +1,6 @@
 package io.nexusrpc.handler;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.nexusrpc.Serializer;
 import java.io.ByteArrayInputStream;
@@ -20,6 +20,41 @@ public class HeaderTest {
             .build();
     // Verify that the map is case-insensitive
     verifyHeaders(context.getHeaders());
+  }
+
+  @Test
+  void retryHandlerException() {
+    // Verify that, by default, INTERNAL errors are retryable
+    HandlerException he = new HandlerException(HandlerException.ErrorType.INTERNAL, "message");
+    assertTrue(he.isRetryable());
+    assertEquals(HandlerException.RetryBehavior.UNSPECIFIED, he.getRetryBehavior());
+    // Verify that RetryBehavior.NON_RETRYABLE makes the error non-retryable
+    he =
+        new HandlerException(
+            HandlerException.ErrorType.INTERNAL,
+            "message",
+            HandlerException.RetryBehavior.NON_RETRYABLE);
+    assertFalse(he.isRetryable());
+    assertEquals(HandlerException.RetryBehavior.NON_RETRYABLE, he.getRetryBehavior());
+    // Verify that, by default, BAD_REQUEST errors are retryable
+    he = new HandlerException(HandlerException.ErrorType.BAD_REQUEST, "message");
+    assertFalse(he.isRetryable());
+    assertEquals(HandlerException.RetryBehavior.UNSPECIFIED, he.getRetryBehavior());
+    // Verify that RetryBehavior.RETRYABLE makes the error non-retryable
+    he =
+        new HandlerException(
+            HandlerException.ErrorType.BAD_REQUEST,
+            "message",
+            HandlerException.RetryBehavior.RETRYABLE);
+    assertTrue(he.isRetryable());
+    assertEquals(HandlerException.RetryBehavior.RETRYABLE, he.getRetryBehavior());
+    // Verify that an unknown error type is retryable by default and the type is UNKNOWN
+    he =
+        new HandlerException("SOME_UNKNOWN_TYPE", null, HandlerException.RetryBehavior.UNSPECIFIED);
+    assertTrue(he.isRetryable());
+    assertEquals(HandlerException.RetryBehavior.UNSPECIFIED, he.getRetryBehavior());
+    assertEquals(HandlerException.ErrorType.UNKNOWN, he.getErrorType());
+    assertEquals("SOME_UNKNOWN_TYPE", he.getRawErrorType());
   }
 
   @Test
