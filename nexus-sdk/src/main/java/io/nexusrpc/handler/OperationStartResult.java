@@ -1,9 +1,5 @@
 package io.nexusrpc.handler;
 
-import io.nexusrpc.Link;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -40,13 +36,10 @@ public class OperationStartResult<R> {
 
   private final @Nullable R syncResult;
   private final @Nullable String asyncOperationToken;
-  private final List<Link> links;
 
-  private OperationStartResult(
-      @Nullable R syncResult, @Nullable String asyncOperationToken, List<Link> links) {
+  private OperationStartResult(@Nullable R syncResult, @Nullable String asyncOperationToken) {
     this.syncResult = syncResult;
     this.asyncOperationToken = asyncOperationToken;
-    this.links = links;
   }
 
   /** Whether this start result is synchronous or asynchronous. */
@@ -67,25 +60,16 @@ public class OperationStartResult<R> {
     return asyncOperationToken;
   }
 
-  /** The links associated with the operation. */
-  public List<Link> getLinks() {
-    return links;
-  }
-
   /** Builder for an OperationStartResult. */
   public static class Builder<R> {
     private R syncResult;
     private @Nullable String asyncOperationToken;
-    private final List<Link> links;
 
-    private Builder() {
-      links = new ArrayList<>();
-    }
+    private Builder() {}
 
     private Builder(OperationStartResult<R> result) {
       syncResult = result.syncResult;
       asyncOperationToken = result.asyncOperationToken;
-      links = new ArrayList<>(result.links);
     }
 
     /**
@@ -117,23 +101,11 @@ public class OperationStartResult<R> {
       return this;
     }
 
-    /** Add a link to the operation. */
-    public Builder<R> addLink(Link link) {
-      links.add(link);
-      return this;
-    }
-
-    /** Get links. */
-    public List<Link> getLinks() {
-      return links;
-    }
-
     public OperationStartResult<R> build() {
       if (syncResult != null && asyncOperationToken != null) {
         throw new IllegalStateException("Cannot have both sync result and async operation token");
       }
-      return new OperationStartResult<>(
-          syncResult, asyncOperationToken, links != null ? links : Collections.emptyList());
+      return new OperationStartResult<>(syncResult, asyncOperationToken);
     }
   }
 }
