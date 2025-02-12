@@ -237,13 +237,14 @@ public class ServiceHandlerTest {
         "Hello from API, SomeUser!",
         new String(Objects.requireNonNull(content.getDataBytes()), StandardCharsets.UTF_8));
     // Test an async operation with a link
+    OperationContext octx = newGreetingServiceContext("sayHello2");
     OperationStartResult<HandlerResultContent> resultWithLink =
         handler.startOperation(
-            newGreetingServiceContext("sayHello2"),
+            octx,
             OperationStartDetails.newBuilder().setRequestId("request-id-4").build(),
             newSimpleInputContent("SomeUser-link"));
     Objects.requireNonNull(resultWithLink.getAsyncOperationToken());
-    List<Link> links = Objects.requireNonNull(resultWithLink.getLinks());
+    List<Link> links = Objects.requireNonNull(octx.getLinks());
     assertEquals(1, links.size());
     assertEquals("http://somepath?k=v", links.get(0).getUri().toString());
     assertEquals("com.example.MyResource", links.get(0).getType());

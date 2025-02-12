@@ -1,5 +1,6 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Link;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -21,6 +22,7 @@ public class OperationContext {
   private final Map<String, String> headers;
   // This is not included in equals, hashCode, or toString
   private final @Nullable OperationMethodCanceller methodCanceller;
+  private final List<Link> links = new ArrayList<>();
 
   private OperationContext(
       String service,
@@ -48,6 +50,11 @@ public class OperationContext {
     return headers;
   }
 
+  /** Get a read only list of links attached to this context. */
+  public List<Link> getLinks() {
+    return Collections.unmodifiableList(new ArrayList<>(links));
+  }
+
   /**
    * True if the method has been cancelled, false if not. Note, this is method cancellation,
    * unrelated to operation cancellation.
@@ -68,21 +75,51 @@ public class OperationContext {
    * Add a listener for method cancellation. This will be invoked immediately before this function
    * returns if the method is already cancelled. The listener must not block. This is not reentrant
    * and therefore must not be called in another cancellation listener.
+   *
+   * @return this
    */
-  public void addMethodCancellationListener(OperationMethodCancellationListener listener) {
+  public OperationContext addMethodCancellationListener(
+      OperationMethodCancellationListener listener) {
     if (methodCanceller != null) {
       methodCanceller.addListener(listener);
     }
+    return this;
+  }
+
+  /**
+   * Associates links with the current operation to be propagated back to the caller. Links will
+   * only be attached on successful responses.
+   *
+   * @return this
+   */
+  public OperationContext addLinks(Link... links) {
+    this.links.addAll(Arrays.asList(links));
+    return this;
+  }
+
+  /**
+   * Associates links with the current operation to be propagated back to the caller. It is
+   * recommended to use {@link #addLinks(Link...)} to avoid accidental override. Links will only be
+   * attached on successful responses.
+   *
+   * @return this
+   */
+  public OperationContext setLinks(Link... links) {
+    this.links.clear();
+    this.links.addAll(Arrays.asList(links));
+    return this;
   }
 
   /**
    * Remove a listener, if present, for method cancellation using hash code. This is not reentrant
    * and therefore must not be called in another cancellation listener.
    */
-  public void removeMethodCancellationListener(OperationMethodCancellationListener listener) {
+  public OperationContext removeMethodCancellationListener(
+      OperationMethodCancellationListener listener) {
     if (methodCanceller != null) {
       methodCanceller.removeListener(listener);
     }
+    return this;
   }
 
   @Override
@@ -92,7 +129,8 @@ public class OperationContext {
     OperationContext that = (OperationContext) o;
     return Objects.equals(service, that.service)
         && Objects.equals(operation, that.operation)
-        && Objects.equals(headers, that.headers);
+        && Objects.equals(headers, that.headers)
+        && Objects.equals(links, that.links);
   }
 
   @Override
@@ -111,6 +149,8 @@ public class OperationContext {
         + '\''
         + ", headers="
         + headers
+        + ", links="
+        + links
         + '}';
   }
 
