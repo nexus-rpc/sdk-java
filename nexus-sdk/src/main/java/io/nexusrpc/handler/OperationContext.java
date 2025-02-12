@@ -52,7 +52,7 @@ public class OperationContext {
 
   /** Get a read only list of links attached to this context. */
   public List<Link> getLinks() {
-    return Collections.unmodifiableList(links);
+    return Collections.unmodifiableList(new ArrayList<>(links));
   }
 
   /**
