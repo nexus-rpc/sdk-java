@@ -47,7 +47,8 @@ public class OperationFetchResultDetails {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationFetchResultDetails that = (OperationFetchResultDetails) o;
-    return Objects.equals(operationToken, that.operationToken) && Objects.equals(timeout, that.timeout);
+    return Objects.equals(operationToken, that.operationToken)
+        && Objects.equals(timeout, that.timeout);
   }
 
   @Override

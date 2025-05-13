@@ -63,7 +63,7 @@ public class GreetingServiceImpl {
     @Override
     public String fetchResult(OperationContext context, OperationFetchResultDetails details)
         throws OperationStillRunningException {
-      Future<String> operation = getOperation(details.getOperationId());
+      Future<String> operation = getOperation(details.getOperationToken());
       try {
         // When timeout missing, be done or fail
         if (details.getTimeout() == null) {
