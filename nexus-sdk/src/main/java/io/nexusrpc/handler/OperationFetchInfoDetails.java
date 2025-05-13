@@ -17,8 +17,8 @@ public class OperationFetchInfoDetails {
 
   private final String operationToken;
 
-  private OperationFetchInfoDetails(String operationId) {
-    this.operationToken = operationId;
+  private OperationFetchInfoDetails(String operationToken) {
+    this.operationToken = operationToken;
   }
 
   /** ID of the operation. */

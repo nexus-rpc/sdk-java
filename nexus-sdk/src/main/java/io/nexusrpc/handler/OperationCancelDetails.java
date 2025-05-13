@@ -18,8 +18,8 @@ public class OperationCancelDetails {
 
   private final String operationToken;
 
-  private OperationCancelDetails(String operationId) {
-    this.operationToken = operationId;
+  private OperationCancelDetails(String operationToken) {
+    this.operationToken = operationToken;
   }
 
   /** Get the operation token. */
