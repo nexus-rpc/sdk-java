@@ -17,17 +17,17 @@ public class OperationFetchResultDetails {
     return new Builder(details);
   }
 
-  private final String operationId;
+  private final String operationToken;
   private final @Nullable Duration timeout;
 
-  private OperationFetchResultDetails(String operationId, @Nullable Duration timeout) {
-    this.operationId = operationId;
+  private OperationFetchResultDetails(String operationToken, @Nullable Duration timeout) {
+    this.operationToken = operationToken;
     this.timeout = timeout;
   }
 
   /** ID of the operation. */
-  public String getOperationId() {
-    return operationId;
+  public String getOperationToken() {
+    return operationToken;
   }
 
   /**
@@ -47,19 +47,19 @@ public class OperationFetchResultDetails {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationFetchResultDetails that = (OperationFetchResultDetails) o;
-    return Objects.equals(operationId, that.operationId) && Objects.equals(timeout, that.timeout);
+    return Objects.equals(operationToken, that.operationToken) && Objects.equals(timeout, that.timeout);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(operationId, timeout);
+    return Objects.hash(operationToken, timeout);
   }
 
   @Override
   public String toString() {
     return "OperationFetchResultDetails{"
         + "operationToken='"
-        + operationId
+        + operationToken
         + '\''
         + ", timeout="
         + timeout
@@ -74,7 +74,7 @@ public class OperationFetchResultDetails {
     private Builder() {}
 
     private Builder(OperationFetchResultDetails details) {
-      operationToken = details.operationId;
+      operationToken = details.operationToken;
     }
 
     /** Set operation token. Required. */
