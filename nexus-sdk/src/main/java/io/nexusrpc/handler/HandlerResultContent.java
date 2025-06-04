@@ -3,9 +3,12 @@ package io.nexusrpc.handler;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import io.nexusrpc.Experimental;
 import org.jspecify.annotations.Nullable;
 
 /** Content that can be fixed or streaming as a result of an operation. */
+@Experimental
 public class HandlerResultContent {
   /** Create a builder for content. */
   public static Builder newBuilder() {

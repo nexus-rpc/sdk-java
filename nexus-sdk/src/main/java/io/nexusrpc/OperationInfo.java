@@ -4,6 +4,7 @@ import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /** Information about an operation. */
+@Experimental
 public class OperationInfo {
   /** Create a builder. */
   public static Builder newBuilder() {
