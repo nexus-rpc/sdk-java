@@ -3,7 +3,7 @@
 [![Java Docs](https://img.shields.io/badge/Java_Docs-red)](https://javadoc.io/doc/io.nexusrpc/nexus-sdk/latest/index.html)
 [![Continuous Integration](https://github.com/nexus-rpc/sdk-java/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-rpc/sdk-java/actions/workflows/ci.yml)
 
-Package for working with the Nexus [HTTP API](https://github.com/nexus-rpc/api).
+Java SDK for working with [Nexus RPC](https://github.com/nexus-rpc/api).
 
 ## What is Nexus?
 
@@ -18,9 +18,9 @@ caller can also specify a callback URL, which the handler uses to asynchronously
 
 ## Build configuration
 
-[Find the latest release](https://search.maven.org/artifact/io.temporal/temporal-sdk) of the Temporal Java SDK at maven central.
+[Find the latest release](https://search.maven.org/artifact/io.nexusrpc/nexus-sdk) of the Nexus Java SDK at maven central.
 
-Add *temporal-sdk* as a dependency to your *pom.xml*:
+Add *nexus-sdk* as a dependency to your *pom.xml*:
 
     <dependency>
       <groupId>io.nexusrpc</groupId>
