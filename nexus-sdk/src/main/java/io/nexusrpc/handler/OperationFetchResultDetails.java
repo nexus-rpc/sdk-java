@@ -1,11 +1,13 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.OperationStillRunningException;
 import java.time.Duration;
 import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /** Details for handling operation fetch result. */
+@Experimental
 public class OperationFetchResultDetails {
   /** Create a builder. */
   public static Builder newBuilder() {
