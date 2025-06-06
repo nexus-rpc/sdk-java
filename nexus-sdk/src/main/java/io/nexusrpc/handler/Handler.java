@@ -3,6 +3,7 @@ package io.nexusrpc.handler;
 import io.nexusrpc.OperationException;
 import io.nexusrpc.OperationInfo;
 import io.nexusrpc.OperationStillRunningException;
+import io.nexusrpc.Experimental;
 
 /** Top-level handler for service calls. */
 public interface Handler {
@@ -23,6 +24,7 @@ public interface Handler {
    *
    * <p>If the result is an output stream, it will be closed later by the caller.
    */
+  @Experimental
   HandlerResultContent fetchOperationResult(
       OperationContext context, OperationFetchResultDetails details)
       throws OperationStillRunningException, OperationException, HandlerException;
@@ -31,6 +33,7 @@ public interface Handler {
    * Fetch information about the asynchronously started operation. See {@link
    * OperationHandler#fetchInfo} for details.
    */
+  @Experimental
   OperationInfo fetchOperationInfo(OperationContext context, OperationFetchInfoDetails details)
       throws HandlerException;
 
