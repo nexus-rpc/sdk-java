@@ -7,6 +7,6 @@ import java.lang.annotation.*;
  * notice. This annotation is inherited.
  */
 @Inherited
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.CLASS)
 @Target({ElementType.FIELD, ElementType.TYPE, ElementType.METHOD})
 public @interface Experimental {}
