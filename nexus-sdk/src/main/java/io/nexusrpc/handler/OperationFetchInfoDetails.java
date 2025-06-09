@@ -1,9 +1,12 @@
 package io.nexusrpc.handler;
 
 import java.util.Objects;
+
+import io.nexusrpc.Experimental;
 import org.jspecify.annotations.Nullable;
 
 /** Details for handling operation fetch info. */
+@Experimental
 public class OperationFetchInfoDetails {
   /** Create a builder. */
   public static Builder newBuilder() {
