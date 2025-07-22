@@ -1,4 +1,4 @@
-package io.nexusrpc.client;
+package io.nexusrpc.client.transport;
 
 import io.nexusrpc.Link;
 import java.util.List;
@@ -7,6 +7,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class StartOperationOptions {
+  /** Create a builder for StartOperationOptions. */
   public static Builder newBuilder() {
     return new Builder();
   }
