@@ -1,11 +1,13 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.Link;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+@Experimental
 public class StartOperationOptions {
   /** Create a builder for StartOperationOptions. */
   public static Builder newBuilder() {
@@ -78,6 +80,16 @@ public class StartOperationOptions {
 
     public Builder setRequestId(String requestId) {
       this.requestId = requestId;
+      return this;
+    }
+
+    public Builder putHeader(String key, String value) {
+      headers.put(key, value);
+      return this;
+    }
+
+    public Builder putCallbackHeader(String key, String value) {
+      callbackHeaders.put(key, value);
       return this;
     }
 

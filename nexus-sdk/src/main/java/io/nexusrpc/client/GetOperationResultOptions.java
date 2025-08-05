@@ -1,10 +1,17 @@
 package io.nexusrpc.client;
 
+import io.nexusrpc.Experimental;
 import java.time.Duration;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+/**
+ * Options for getting the result of an operation.
+ *
+ * <p>These options can be used with {@link OperationHandle#getResult(GetOperationResultOptions)}.
+ */
+@Experimental
 public class GetOperationResultOptions {
   /** Create a builder for GetOperationResultOptions. */
   public static GetOperationResultOptions.Builder newBuilder() {

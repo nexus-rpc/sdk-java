@@ -1,9 +1,11 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+@Experimental
 public class CancelOperationOptions {
   /** Create a builder for CancelOperationOptions. */
   public static Builder newBuilder() {
@@ -26,6 +28,16 @@ public class CancelOperationOptions {
 
     private Builder() {
       headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    }
+
+    public Builder putAllHeaders(Map<String, String> headers) {
+      this.headers.putAll(headers);
+      return this;
+    }
+
+    public Builder putHeader(String name, String value) {
+      headers.put(name, value);
+      return this;
     }
 
     /** Get headers to mutate. */

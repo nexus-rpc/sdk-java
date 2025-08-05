@@ -1,13 +1,20 @@
 package io.nexusrpc.client;
 
+import io.nexusrpc.Experimental;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+/**
+ * GetOperationInfoOptions represents options for getting information about an operation.
+ *
+ * <p>These options can be used with {@link OperationHandle#getInfo(GetOperationInfoOptions)}.
+ */
+@Experimental
 public class GetOperationInfoOptions {
-  /** Create a builder for CancelOperationOptions. */
-  public static GetOperationInfoOptions.Builder newBuilder() {
-    return new GetOperationInfoOptions.Builder();
+  /** Create a builder for GetOperationInfoOptions. */
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
   private final SortedMap<String, String> headers;

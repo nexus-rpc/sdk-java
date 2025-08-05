@@ -1,10 +1,12 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
 import java.time.Duration;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+@Experimental
 public class GetOperationResultOptions {
   /** Create a builder for GetOperationResultOptions. */
   public static Builder newBuilder() {

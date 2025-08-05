@@ -1,22 +1,25 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.Link;
+import io.nexusrpc.Serializer;
 import java.util.List;
 
+@Experimental
 public class GetOperationResultResponse {
   public static GetOperationResultResponse.Builder newBuilder() {
     return new GetOperationResultResponse.Builder();
   }
 
-  private final Object result;
+  private final Serializer.Content result;
   private final List<Link> links;
 
-  private GetOperationResultResponse(Object result, List<Link> links) {
+  private GetOperationResultResponse(Serializer.Content result, List<Link> links) {
     this.result = result;
     this.links = links;
   }
 
-  public Object getResult() {
+  public Serializer.Content getResult() {
     return result;
   }
 
@@ -25,10 +28,10 @@ public class GetOperationResultResponse {
   }
 
   public static class Builder {
-    private Object result;
+    private Serializer.Content result;
     private List<Link> links;
 
-    public GetOperationResultResponse.Builder setResult(Object result) {
+    public GetOperationResultResponse.Builder setResult(Serializer.Content result) {
       this.result = result;
       return this;
     }

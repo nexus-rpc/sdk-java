@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 /** Definition of an operation on a service. */
 public class OperationDefinition {
-  static OperationDefinition fromMethod(Method method) {
+  public static OperationDefinition fromMethod(Method method) {
     Operation operation = method.getDeclaredAnnotation(Operation.class);
     if (operation == null) {
       throw new IllegalArgumentException("Missing @Operation annotation");

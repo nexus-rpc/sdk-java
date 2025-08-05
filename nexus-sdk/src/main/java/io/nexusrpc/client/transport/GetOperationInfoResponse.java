@@ -1,7 +1,9 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.OperationInfo;
 
+@Experimental
 public class GetOperationInfoResponse {
   /** Create a builder for GetOperationInfoResponse. */
   public static Builder newBuilder() {

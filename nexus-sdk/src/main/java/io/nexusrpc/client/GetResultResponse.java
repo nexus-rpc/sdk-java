@@ -4,8 +4,8 @@ import io.nexusrpc.Link;
 import java.util.List;
 
 public class GetResultResponse<T> {
-  public static GetResultResponse.Builder newBuilder() {
-    return new GetResultResponse.Builder();
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
   private final T result;

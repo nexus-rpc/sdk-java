@@ -1,13 +1,19 @@
 package io.nexusrpc.client;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.Link;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.BiFunction;
 
+/** Start operation options for {@link ServiceClient#executeOperation(BiFunction, Object)}. */
+@Experimental
 public class ExecuteOperationOptions {
+  /** Create a builder for ExecuteOperationOptions. */
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   private final Map<String, String> headers;
   private final String callbackURL;
   private final Map<String, String> callbackHeaders;
@@ -95,9 +101,24 @@ public class ExecuteOperationOptions {
       return this;
     }
 
+    public Builder putHeader(String name, String value) {
+      headers.put(name, value);
+      return this;
+    }
+
+    public Builder putCallbackHeader(String name, String value) {
+      callbackHeaders.put(name, value);
+      return this;
+    }
+
     public ExecuteOperationOptions build() {
       return new ExecuteOperationOptions(
-          headers, callbackURL, callbackHeaders, requestId, inboundLinks, timeout);
+          headers,
+          callbackURL,
+          callbackHeaders,
+          requestId,
+          inboundLinks != null ? inboundLinks : Collections.emptyList(),
+          timeout);
     }
   }
 }

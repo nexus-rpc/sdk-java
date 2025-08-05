@@ -1,24 +1,28 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.Link;
+import io.nexusrpc.Serializer;
 import java.util.List;
 
+@Experimental
 public class StartOperationResponse {
   public static Builder newBuilder() {
     return new Builder();
   }
 
-  private final Object syncResult;
+  private final Serializer.Content syncResult;
   private final List<Link> links;
   private final String asyncOperationToken;
 
-  private StartOperationResponse(Object syncResult, String asyncOperationToken, List<Link> links) {
+  private StartOperationResponse(
+      Serializer.Content syncResult, String asyncOperationToken, List<Link> links) {
     this.syncResult = syncResult;
     this.asyncOperationToken = asyncOperationToken;
     this.links = links;
   }
 
-  public Object getSyncResult() {
+  public Serializer.Content getSyncResult() {
     return syncResult;
   }
 
@@ -31,11 +35,11 @@ public class StartOperationResponse {
   }
 
   public static class Builder {
-    private Object syncResult;
+    private Serializer.Content syncResult;
     private String asyncOperationToken;
     private List<Link> links;
 
-    public Builder setResult(Object syncResult) {
+    public Builder setResult(Serializer.Content syncResult) {
       this.syncResult = syncResult;
       return this;
     }

@@ -1,12 +1,13 @@
 package io.nexusrpc.client;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.Link;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
+/** Start operation options for {@link ServiceClient#startOperation}. */
+@Experimental
 public class StartOperationOptions {
+  /** Create a builder for start operation options. */
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -85,9 +86,18 @@ public class StartOperationOptions {
       return this;
     }
 
+    public Builder putHeader(String key, String value) {
+      this.headers.put(key, value);
+      return this;
+    }
+
     public StartOperationOptions build() {
       return new StartOperationOptions(
-          headers, callbackURL, callbackHeaders, requestId, inboundLinks);
+          headers,
+          callbackURL,
+          callbackHeaders,
+          requestId,
+          inboundLinks != null ? inboundLinks : Collections.emptyList());
     }
   }
 }
