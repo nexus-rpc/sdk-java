@@ -1,16 +1,23 @@
 package io.nexusrpc.client.transport;
 
+import io.nexusrpc.Experimental;
+import io.nexusrpc.OperationException;
+import io.nexusrpc.OperationStillRunningException;
 import java.util.concurrent.CompletableFuture;
 
+/** Transport interface for Nexus RPC operations. */
+@Experimental
 public interface Transport {
   StartOperationResponse startOperation(
-      String operationName, String serviceName, StartOperationOptions options);
+      String operationName, String serviceName, Object input, StartOperationOptions options)
+      throws OperationException;
 
   GetOperationResultResponse getOperationResult(
       String operationName,
       String serviceName,
       String operationToken,
-      GetOperationResultOptions options);
+      GetOperationResultOptions options)
+      throws OperationException, OperationStillRunningException;
 
   GetOperationInfoResponse getOperationInfo(
       String operationName,
@@ -23,6 +30,9 @@ public interface Transport {
       String serviceName,
       String operationToken,
       CancelOperationOptions options);
+
+  CompleteOperationResponse completeOperation(
+      String operationToken, CompleteOperationOptions options);
 
   CompletableFuture<StartOperationResponse> startOperationAsync(
       String operationName,
@@ -47,4 +57,7 @@ public interface Transport {
       String serviceName,
       String operationToken,
       CancelOperationOptions options);
+
+  CompletableFuture<CompleteOperationResponse> completeOperationAsync(
+      String operationToken, CompleteOperationOptions options);
 }
