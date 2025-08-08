@@ -6,15 +6,15 @@ import io.nexusrpc.Serializer;
 import java.util.List;
 
 @Experimental
-public class GetOperationResultResponse {
-  public static GetOperationResultResponse.Builder newBuilder() {
-    return new GetOperationResultResponse.Builder();
+public class FetchOperationResultResponse {
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
   private final Serializer.Content result;
   private final List<Link> links;
 
-  private GetOperationResultResponse(Serializer.Content result, List<Link> links) {
+  private FetchOperationResultResponse(Serializer.Content result, List<Link> links) {
     this.result = result;
     this.links = links;
   }
@@ -31,18 +31,18 @@ public class GetOperationResultResponse {
     private Serializer.Content result;
     private List<Link> links;
 
-    public GetOperationResultResponse.Builder setResult(Serializer.Content result) {
+    public Builder setResult(Serializer.Content result) {
       this.result = result;
       return this;
     }
 
-    public GetOperationResultResponse.Builder setLinks(List<Link> links) {
+    public Builder setLinks(List<Link> links) {
       this.links = links;
       return this;
     }
 
-    public GetOperationResultResponse build() {
-      return new GetOperationResultResponse(result, links);
+    public FetchOperationResultResponse build() {
+      return new FetchOperationResultResponse(result, links);
     }
   }
 }

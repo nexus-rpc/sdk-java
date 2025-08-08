@@ -1,13 +1,14 @@
 package io.nexusrpc.client;
 
 import io.nexusrpc.*;
-import io.nexusrpc.client.transport.GetOperationResultResponse;
-import io.nexusrpc.client.transport.StartOperationResponse;
+import io.nexusrpc.client.transport.FetchOperationResultOptions;
+import io.nexusrpc.client.transport.FetchOperationResultResponse;
 import io.nexusrpc.client.transport.Transport;
 import io.nexusrpc.handler.HandlerException;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 
@@ -62,7 +63,7 @@ public class ServiceClient<T> {
       BiFunction<T, U, R> operation, U input, ExecuteOperationOptions options)
       throws OperationException, OperationStillRunningException {
     Objects.requireNonNull(operation, "operation");
-    OperationDefinition operationDefinition = extractOperationDefinition(operation);
+    OperationDefinition operationDefinition = extractOperationDefinition(serviceClass, operation);
     return executeOperation(
         operationDefinition.getName(), operationDefinition.getOutputType(), input, options);
   }
@@ -93,22 +94,95 @@ public class ServiceClient<T> {
 
     options.getCallbackHeaders().forEach(transportOptions::putCallbackHeader);
 
-    StartOperationResponse response =
+    io.nexusrpc.client.transport.StartOperationResponse response =
         transport.startOperation(
             operation, serviceDefinition.getName(), input, transportOptions.build());
     if (response.getAsyncOperationToken() == null) {
       // If the operation is synchronous, return the result directly
       return (R) serializer.deserialize(response.getSyncResult(), resultType);
     }
-    GetOperationResultResponse result =
-        transport.getOperationResult(
+    FetchOperationResultResponse result =
+        transport.fetchOperationResult(
             operation,
             serviceDefinition.getName(),
             response.getAsyncOperationToken(),
-            io.nexusrpc.client.transport.GetOperationResultOptions.newBuilder()
-                .setTimeout(options.getTimeout())
-                .build());
+            FetchOperationResultOptions.newBuilder().setTimeout(options.getTimeout()).build());
     return (R) serializer.deserialize(result.getResult(), resultType);
+  }
+
+  /**
+   * Executes an operation on the Nexus service with the provided input. This method is synchronous
+   * and returns the result directly.
+   *
+   * @param operation The operation method to execute, represented as a BiFunction.
+   * @param input The input to the operation.
+   * @return CompletableFuture that will be completed with the result of the operation.
+   * @throws HandlerException if there is an unexpected failure while running the handler
+   */
+  public <U, R> CompletableFuture<R> executeOperationAsync(BiFunction<T, U, R> operation, U input) {
+    return executeOperationAsync(operation, input, ExecuteOperationOptions.newBuilder().build());
+  }
+
+  /**
+   * Executes an operation on the Nexus service with the provided input. This method is synchronous
+   * and returns the result directly.
+   *
+   * @param operation The operation method to execute, represented as a BiFunction.
+   * @param input The input to the operation.
+   * @param options for execute operations
+   * @return The result of the operation.
+   * @throws HandlerException if there is an unexpected failure while running the handler
+   */
+  public <U, R> CompletableFuture<R> executeOperationAsync(
+      BiFunction<T, U, R> operation, U input, ExecuteOperationOptions options) {
+    Objects.requireNonNull(operation, "operation");
+    OperationDefinition operationDefinition = extractOperationDefinition(serviceClass, operation);
+    return executeOperationAsync(
+        operationDefinition.getName(), operationDefinition.getOutputType(), input, options);
+  }
+
+  /**
+   * Execute an operation on the Nexus service with the provided input.
+   *
+   * @param operation The operation name to start.
+   * @param input The input to the operation.
+   * @param options for start operations
+   */
+  public <U, R> CompletableFuture<R> executeOperationAsync(
+      String operation, Type resultType, U input, ExecuteOperationOptions options) {
+    Objects.requireNonNull(operation, "operation");
+    Objects.requireNonNull(resultType, "resultType");
+    Objects.requireNonNull(options, "options");
+    io.nexusrpc.client.transport.StartOperationOptions.Builder transportOptions =
+        io.nexusrpc.client.transport.StartOperationOptions.newBuilder()
+            .setRequestId(options.getRequestId())
+            .setCallbackURL(options.getCallbackURL())
+            .setInboundLinks(options.getInboundLinks());
+
+    options.getHeaders().forEach(transportOptions::putHeader);
+
+    options.getCallbackHeaders().forEach(transportOptions::putCallbackHeader);
+
+    CompletableFuture<io.nexusrpc.client.transport.StartOperationResponse> response =
+        transport.startOperationAsync(
+            operation, serviceDefinition.getName(), input, transportOptions.build());
+    return response.thenCompose(
+        r -> {
+          if (r.getAsyncOperationToken() == null) {
+            // If the operation is synchronous, return the result directly
+            return CompletableFuture.completedFuture(
+                (R) serializer.deserialize(r.getSyncResult(), resultType));
+          }
+          CompletableFuture<FetchOperationResultResponse> result =
+              transport.fetchOperationResultAsync(
+                  operation,
+                  serviceDefinition.getName(),
+                  r.getAsyncOperationToken(),
+                  FetchOperationResultOptions.newBuilder()
+                      .setTimeout(options.getTimeout())
+                      .build());
+          return result.thenApply(res -> (R) serializer.deserialize(res.getResult(), resultType));
+        });
   }
 
   /**
@@ -119,7 +193,7 @@ public class ServiceClient<T> {
    * @throws OperationException if the operation fails
    * @throws HandlerException if there is an unexpected failure while running the handler
    */
-  public <U, R> StartOperationResult<R> startOperation(BiFunction<T, U, R> operation, U input)
+  public <U, R> StartOperationResponse<R> startOperation(BiFunction<T, U, R> operation, U input)
       throws OperationException {
     return startOperation(operation, input, StartOperationOptions.newBuilder().build());
   }
@@ -133,10 +207,10 @@ public class ServiceClient<T> {
    * @throws OperationException if the operation fails
    * @throws HandlerException if there is an unexpected failure while running the handler
    */
-  public <U, R> StartOperationResult<R> startOperation(
+  public <U, R> StartOperationResponse<R> startOperation(
       BiFunction<T, U, R> operation, U input, StartOperationOptions options)
       throws OperationException {
-    OperationDefinition operationDefinition = extractOperationDefinition(operation);
+    OperationDefinition operationDefinition = extractOperationDefinition(serviceClass, operation);
     return startOperation(
         operationDefinition.getName(), operationDefinition.getOutputType(), input, options);
   }
@@ -150,7 +224,7 @@ public class ServiceClient<T> {
    * @throws OperationException if the operation fails
    * @throws HandlerException if there is an unexpected failure while running the handler
    */
-  public <U, R> StartOperationResult<R> startOperation(
+  public <U, R> StartOperationResponse<R> startOperation(
       String operation, Type resultType, U input, StartOperationOptions options)
       throws OperationException {
     Objects.requireNonNull(operation, "operation");
@@ -165,16 +239,16 @@ public class ServiceClient<T> {
     options.getHeaders().forEach(transportOptions::putHeader);
 
     options.getCallbackHeaders().forEach(transportOptions::putCallbackHeader);
-    StartOperationResponse response =
+    io.nexusrpc.client.transport.StartOperationResponse response =
         transport.startOperation(
             operation, serviceDefinition.getName(), input, transportOptions.build());
     if (response.getAsyncOperationToken() == null) {
       // If the operation is synchronous, return the result directly
-      return StartOperationResult.sync(
+      return new StartOperationResponse.Sync<>(
           (R) serializer.deserialize(response.getSyncResult(), resultType), response.getLinks());
     }
     // If the operation is asynchronous, return a handle to the operation
-    return StartOperationResult.async(
+    return new StartOperationResponse.Async<>(
         new OperationHandle<>(
             operation,
             serviceDefinition.getName(),
@@ -183,6 +257,75 @@ public class ServiceClient<T> {
             serializer,
             transport),
         response.getLinks());
+  }
+
+  /**
+   * Starts an operation on the Nexus service with the provided input.
+   *
+   * @param operation The operation method to start, represented as a BiFunction.
+   * @param input The input to the operation.
+   */
+  public <U, R> CompletableFuture<StartOperationResponse<R>> startOperationAsync(
+      BiFunction<T, U, R> operation, U input) {
+    return startOperationAsync(operation, input, StartOperationOptions.newBuilder().build());
+  }
+
+  /**
+   * Starts an operation on the Nexus service with the provided input.
+   *
+   * @param operation The operation method to start, represented as a BiFunction.
+   * @param input The input to the operation.
+   * @param options for start operations
+   */
+  public <U, R> CompletableFuture<StartOperationResponse<R>> startOperationAsync(
+      BiFunction<T, U, R> operation, U input, StartOperationOptions options) {
+    OperationDefinition operationDefinition = extractOperationDefinition(serviceClass, operation);
+    return startOperationAsync(
+        operationDefinition.getName(), operationDefinition.getOutputType(), input, options);
+  }
+
+  /**
+   * Starts an operation on the Nexus service with the provided input.
+   *
+   * @param operation The operation name to start.
+   * @param input The input to the operation.
+   * @param options for start operations
+   */
+  public <U, R> CompletableFuture<StartOperationResponse<R>> startOperationAsync(
+      String operation, Type resultType, U input, StartOperationOptions options) {
+    Objects.requireNonNull(operation, "operation");
+    Objects.requireNonNull(resultType, "resultType");
+    Objects.requireNonNull(options, "options");
+    io.nexusrpc.client.transport.StartOperationOptions.Builder transportOptions =
+        io.nexusrpc.client.transport.StartOperationOptions.newBuilder()
+            .setRequestId(options.getRequestId())
+            .setInboundLinks(options.getInboundLinks())
+            .setCallbackURL(options.getCallbackURL());
+
+    options.getHeaders().forEach(transportOptions::putHeader);
+
+    options.getCallbackHeaders().forEach(transportOptions::putCallbackHeader);
+    CompletableFuture<io.nexusrpc.client.transport.StartOperationResponse> response =
+        transport.startOperationAsync(
+            operation, serviceDefinition.getName(), input, transportOptions.build());
+    return response.thenApply(
+        r -> {
+          if (r.getAsyncOperationToken() == null) {
+            // If the operation is synchronous, return the result directly
+            return new StartOperationResponse.Sync<>(
+                (R) serializer.deserialize(r.getSyncResult(), resultType), r.getLinks());
+          }
+          // If the operation is asynchronous, return a handle to the operation
+          return new StartOperationResponse.Async<>(
+              new OperationHandle<>(
+                  operation,
+                  serviceDefinition.getName(),
+                  r.getAsyncOperationToken(),
+                  resultType,
+                  serializer,
+                  transport),
+              r.getLinks());
+        });
   }
 
   /**
@@ -211,7 +354,7 @@ public class ServiceClient<T> {
   public <U, R> OperationHandle<R> newHandle(BiFunction<T, U, R> operation, String token) {
     Objects.requireNonNull(operation, "operation");
     Objects.requireNonNull(token, "token");
-    OperationDefinition operationDefinition = extractOperationDefinition(operation);
+    OperationDefinition operationDefinition = extractOperationDefinition(serviceClass, operation);
     return new OperationHandle<>(
         operationDefinition.getName(),
         serviceDefinition.getName(),
@@ -221,7 +364,8 @@ public class ServiceClient<T> {
         transport);
   }
 
-  private OperationDefinition extractOperationDefinition(BiFunction<T, ?, ?> operation) {
+  static <T> OperationDefinition extractOperationDefinition(
+      Class<T> serviceClass, BiFunction<T, ?, ?> operation) {
     AtomicReference<OperationDefinition> operationDefinition = new AtomicReference<>();
     //noinspection unchecked
     T p =

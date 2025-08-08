@@ -6,15 +6,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 @Experimental
-public class GetOperationInfoOptions {
-  /** Create a builder for GetOperationInfoOptions. */
+public class FetchOperationInfoOptions {
+  /** Create a builder for FetchOperationInfoOptions. */
   public static Builder newBuilder() {
     return new Builder();
   }
 
   private final SortedMap<String, String> headers;
 
-  private GetOperationInfoOptions(SortedMap<String, String> headers) {
+  private FetchOperationInfoOptions(SortedMap<String, String> headers) {
     this.headers = headers;
   }
 
@@ -45,8 +45,8 @@ public class GetOperationInfoOptions {
       return headers;
     }
 
-    public GetOperationInfoOptions build() {
-      return new GetOperationInfoOptions(headers);
+    public FetchOperationInfoOptions build() {
+      return new FetchOperationInfoOptions(headers);
     }
   }
 }

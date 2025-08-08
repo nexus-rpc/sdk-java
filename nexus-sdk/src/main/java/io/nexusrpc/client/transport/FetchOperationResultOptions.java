@@ -1,4 +1,4 @@
-package io.nexusrpc.client;
+package io.nexusrpc.client.transport;
 
 import io.nexusrpc.Experimental;
 import java.time.Duration;
@@ -6,22 +6,17 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-/**
- * Options for getting the result of an operation.
- *
- * <p>These options can be used with {@link OperationHandle#getResult(GetOperationResultOptions)}.
- */
 @Experimental
-public class GetOperationResultOptions {
-  /** Create a builder for GetOperationResultOptions. */
-  public static GetOperationResultOptions.Builder newBuilder() {
-    return new GetOperationResultOptions.Builder();
+public class FetchOperationResultOptions {
+  /** Create a builder for FetchOperationResultOptions. */
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
   private final Duration timeout;
   private final SortedMap<String, String> headers;
 
-  private GetOperationResultOptions(Duration timeout, SortedMap<String, String> headers) {
+  private FetchOperationResultOptions(Duration timeout, SortedMap<String, String> headers) {
     this.timeout = timeout;
     this.headers = headers;
   }
@@ -59,8 +54,8 @@ public class GetOperationResultOptions {
       return this;
     }
 
-    public GetOperationResultOptions build() {
-      return new GetOperationResultOptions(timeout, headers);
+    public FetchOperationResultOptions build() {
+      return new FetchOperationResultOptions(timeout, headers);
     }
   }
 }

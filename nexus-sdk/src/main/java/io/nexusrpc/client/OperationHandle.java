@@ -1,8 +1,8 @@
 package io.nexusrpc.client;
 
 import io.nexusrpc.*;
-import io.nexusrpc.client.transport.GetOperationInfoResponse;
-import io.nexusrpc.client.transport.GetOperationResultResponse;
+import io.nexusrpc.client.transport.FetchOperationInfoResponse;
+import io.nexusrpc.client.transport.FetchOperationResultResponse;
 import io.nexusrpc.client.transport.Transport;
 import io.nexusrpc.handler.HandlerException;
 import java.lang.reflect.Type;
@@ -70,7 +70,7 @@ public class OperationHandle<T> {
    * @throws HandlerException Unexpected failures while running the handler..
    */
   public OperationInfo getInfo() {
-    return getInfo(GetOperationInfoOptions.newBuilder().build());
+    return getInfo(FetchOperationInfoOptions.newBuilder().build());
   }
 
   /**
@@ -80,13 +80,13 @@ public class OperationHandle<T> {
    * @return Information about the operation.
    * @throws HandlerException Unexpected failures while running the handler..
    */
-  public OperationInfo getInfo(GetOperationInfoOptions options) {
+  public OperationInfo getInfo(FetchOperationInfoOptions options) {
     return transport
-        .getOperationInfo(
+        .fetchOperationInfo(
             operation,
             service,
             operationToken,
-            io.nexusrpc.client.transport.GetOperationInfoOptions.newBuilder()
+            io.nexusrpc.client.transport.FetchOperationInfoOptions.newBuilder()
                 .putAllHeaders(options.getHeaders())
                 .build())
         .getOperationInfo();
@@ -134,8 +134,8 @@ public class OperationHandle<T> {
    *     as saying the operation was cancelled.
    * @throws HandlerException Unexpected failures while running the handler.
    */
-  public T getResult() throws OperationException, OperationStillRunningException {
-    return getResult(GetOperationResultOptions.newBuilder().build());
+  public T fetchResult() throws OperationException, OperationStillRunningException {
+    return fetchResult(FetchOperationResultOptions.newBuilder().build());
   }
 
   /**
@@ -148,48 +148,33 @@ public class OperationHandle<T> {
    *     as saying the operation was cancelled.
    * @throws HandlerException Unexpected failures while running the handler.
    */
-  public T getResult(GetOperationResultOptions options)
+  public T fetchResult(FetchOperationResultOptions options)
       throws OperationException, OperationStillRunningException {
-    GetOperationResultResponse response =
-        transport.getOperationResult(
+    FetchOperationResultResponse response =
+        transport.fetchOperationResult(
             operation,
             service,
             operationToken,
-            io.nexusrpc.client.transport.GetOperationResultOptions.newBuilder()
+            io.nexusrpc.client.transport.FetchOperationResultOptions.newBuilder()
                 .setTimeout(options.getTimeout())
                 .build());
     return (T) serializer.deserialize(response.getResult(), type);
   }
 
-  public GetResultResponse<T> getResultWithDetails(GetOperationResultOptions options)
-      throws OperationException, OperationStillRunningException {
-    // TODO: translate options to transport options if necessary
-    GetOperationResultResponse response =
-        transport.getOperationResult(
-            operation,
-            service,
-            operationToken,
-            io.nexusrpc.client.transport.GetOperationResultOptions.newBuilder().build());
-    return GetResultResponse.<T>newBuilder()
-        .setResult(response)
-        .setLinks(response.getLinks())
-        .build();
+  public CompletableFuture<OperationInfo> fetchInfoAsync() {
+    return fetchInfoAsync(FetchOperationInfoOptions.newBuilder().build());
   }
 
-  public CompletableFuture<OperationInfo> getInfoAsync() {
-    return getInfoAsync(GetOperationInfoOptions.newBuilder().build());
-  }
-
-  public CompletableFuture<OperationInfo> getInfoAsync(GetOperationInfoOptions options) {
+  public CompletableFuture<OperationInfo> fetchInfoAsync(FetchOperationInfoOptions options) {
     return transport
-        .getOperationInfoAsync(
+        .fetchOperationInfoAsync(
             operation,
             service,
             operationToken,
-            io.nexusrpc.client.transport.GetOperationInfoOptions.newBuilder()
+            io.nexusrpc.client.transport.FetchOperationInfoOptions.newBuilder()
                 .putAllHeaders(options.getHeaders())
                 .build())
-        .thenApply(GetOperationInfoResponse::getOperationInfo);
+        .thenApply(FetchOperationInfoResponse::getOperationInfo);
   }
 
   public CompletableFuture<Void> cancelAsync() {
@@ -208,36 +193,19 @@ public class OperationHandle<T> {
         .thenApply(response -> null);
   }
 
-  public CompletableFuture<T> getResultAsync() {
-    return getResultAsync(GetOperationResultOptions.newBuilder().build());
+  public CompletableFuture<T> fetchResultAsync() {
+    return fetchResultAsync(FetchOperationResultOptions.newBuilder().build());
   }
 
-  public CompletableFuture<T> getResultAsync(GetOperationResultOptions options) {
-    throw new UnsupportedOperationException("");
-    //    return transport
-    //        .getOperationResultAsync(
-    //            operation,
-    //            service,
-    //            operationToken,
-    //            io.nexusrpc.client.transport.GetOperationResultOptions.newBuilder().build())
-    //        .thenApply(response -> (T) response.getResult());
-  }
-
-  public CompletableFuture<GetResultResponse<T>> getResultWithDetailsAsync(
-      GetOperationResultOptions options) {
+  public CompletableFuture<T> fetchResultAsync(FetchOperationResultOptions options) {
     return transport
-        .getOperationResultAsync(
+        .fetchOperationResultAsync(
             operation,
             service,
             operationToken,
-            io.nexusrpc.client.transport.GetOperationResultOptions.newBuilder().build())
-        .thenApply(
-            response ->
-                GetResultResponse.<T>newBuilder()
-                    .setResult(response)
-                    .setLinks(response.getLinks())
-                    .build());
+            io.nexusrpc.client.transport.FetchOperationResultOptions.newBuilder()
+                .setTimeout(options.getTimeout())
+                .build())
+        .thenApply(res -> (T) serializer.deserialize(res.getResult(), type));
   }
-
-  // TODO Add no arg versions of the above methods that use default options.
 }

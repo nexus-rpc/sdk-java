@@ -4,15 +4,15 @@ import io.nexusrpc.Experimental;
 import io.nexusrpc.OperationInfo;
 
 @Experimental
-public class GetOperationInfoResponse {
-  /** Create a builder for GetOperationInfoResponse. */
+public class FetchOperationInfoResponse {
+  /** Create a builder for FetchOperationInfoResponse. */
   public static Builder newBuilder() {
     return new Builder();
   }
 
   private final OperationInfo operationInfo;
 
-  private GetOperationInfoResponse(OperationInfo operationInfo) {
+  private FetchOperationInfoResponse(OperationInfo operationInfo) {
     this.operationInfo = operationInfo;
   }
 
@@ -30,8 +30,8 @@ public class GetOperationInfoResponse {
       return this;
     }
 
-    public GetOperationInfoResponse build() {
-      return new GetOperationInfoResponse(operationInfo);
+    public FetchOperationInfoResponse build() {
+      return new FetchOperationInfoResponse(operationInfo);
     }
   }
 }
