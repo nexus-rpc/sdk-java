@@ -59,7 +59,8 @@ public class OperationContextTest {
             .setMethodCanceller(omc)
             .setServiceDefinition(serviceImpl.getDefinition())
             .build();
-
+    URI url = new URI("http://somepath?k=v");
+    octx.setLinks(Link.newBuilder().setUri(url).setType("com.example.MyResource").build());
     assertEquals(octx, OperationContext.newBuilder(octx).build());
   }
 }

@@ -24,8 +24,8 @@ public class OperationContext {
   private final Map<String, String> headers;
   // This is not included in equals, hashCode, or toString
   private final @Nullable OperationMethodCanceller methodCanceller;
-  private final List<Link> links = new ArrayList<>();
   private final Instant deadline;
+  private final List<Link> links;
   private final @Nullable ServiceDefinition serviceDefinition;
 
   private OperationContext(
@@ -34,13 +34,15 @@ public class OperationContext {
       Map<String, String> headers,
       @Nullable OperationMethodCanceller methodCanceller,
       Instant deadline,
-      @Nullable ServiceDefinition serviceDefinition) {
+      @Nullable ServiceDefinition serviceDefinition,
+      List<Link> links) {
     this.service = service;
     this.operation = operation;
     this.headers = headers;
     this.methodCanceller = methodCanceller;
     this.deadline = deadline;
     this.serviceDefinition = serviceDefinition;
+    this.links = links;
   }
 
   /** Service name for the call. */
@@ -188,9 +190,14 @@ public class OperationContext {
     private @Nullable OperationMethodCanceller methodCanceller;
     private @Nullable Instant deadline;
     private @Nullable ServiceDefinition serviceDefinition;
+    // Currently links are not set in the builder, but they need to be passed though to go from
+    // OperationContext -> Builder
+    // and back to OperationContext, so we keep them here.
+    private final List<Link> links;
 
     private Builder() {
       headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+      links = new ArrayList<>();
     }
 
     private Builder(OperationContext context) {
@@ -200,6 +207,7 @@ public class OperationContext {
       methodCanceller = context.methodCanceller;
       deadline = context.deadline;
       serviceDefinition = context.serviceDefinition;
+      links = context.links;
     }
 
     /** Set service. Required. */
@@ -260,7 +268,8 @@ public class OperationContext {
           Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)),
           methodCanceller,
           deadline,
-          serviceDefinition);
+          serviceDefinition,
+          links);
     }
   }
 }
