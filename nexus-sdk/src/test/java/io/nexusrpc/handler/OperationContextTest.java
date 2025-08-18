@@ -49,7 +49,7 @@ public class OperationContextTest {
   void contextBuilderTest() {
     OperationMethodCanceller omc = new OperationMethodCanceller();
     ServiceImplInstance serviceImpl = ServiceImplInstance.fromInstance(new IntegerServiceImpl());
-        Instant deadline = Instant.now().plusMillis(1000);
+    Instant deadline = Instant.now().plusMillis(1000);
     OperationContext octx =
         OperationContext.newBuilder()
             .setService("service")
