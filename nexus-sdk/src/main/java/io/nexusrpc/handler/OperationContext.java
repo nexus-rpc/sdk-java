@@ -1,6 +1,7 @@
 package io.nexusrpc.handler;
 
 import io.nexusrpc.Link;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -23,16 +24,19 @@ public class OperationContext {
   // This is not included in equals, hashCode, or toString
   private final @Nullable OperationMethodCanceller methodCanceller;
   private final List<Link> links = new ArrayList<>();
+  private final Instant deadline;
 
   private OperationContext(
       String service,
       String operation,
       Map<String, String> headers,
-      @Nullable OperationMethodCanceller methodCanceller) {
+      @Nullable OperationMethodCanceller methodCanceller,
+      Instant deadline) {
     this.service = service;
     this.operation = operation;
     this.headers = headers;
     this.methodCanceller = methodCanceller;
+    this.deadline = deadline;
   }
 
   /** Service name for the call. */
@@ -69,6 +73,14 @@ public class OperationContext {
    */
   public @Nullable String getMethodCancellationReason() {
     return methodCanceller == null ? null : methodCanceller.getCancellationReason();
+  }
+
+  /**
+   * Get the deadline for the operation handler method. This is the time by which the method should
+   * complete. This is not the operation's deadline.
+   */
+  public @Nullable Instant getDeadline() {
+    return deadline;
   }
 
   /**
@@ -160,6 +172,7 @@ public class OperationContext {
     private @Nullable String operation;
     private final SortedMap<String, String> headers;
     private @Nullable OperationMethodCanceller methodCanceller;
+    private @Nullable Instant deadline;
 
     private Builder() {
       headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -200,6 +213,12 @@ public class OperationContext {
       return this;
     }
 
+    /** Set the deadline for the operation handler method. */
+    public Builder setDeadline(Instant deadline) {
+      this.deadline = deadline;
+      return this;
+    }
+
     /** Build the context. */
     public OperationContext build() {
       Objects.requireNonNull(service, "Service required");
@@ -216,7 +235,8 @@ public class OperationContext {
           service,
           operation,
           Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)),
-          methodCanceller);
+          methodCanceller,
+          deadline);
     }
   }
 }
