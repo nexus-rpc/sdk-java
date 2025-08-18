@@ -1,9 +1,9 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.OperationException;
 import io.nexusrpc.OperationInfo;
 import io.nexusrpc.OperationStillRunningException;
-import io.nexusrpc.Experimental;
 
 /** Top-level handler for service calls. */
 public interface Handler {

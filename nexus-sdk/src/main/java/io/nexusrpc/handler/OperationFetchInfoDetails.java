@@ -1,8 +1,7 @@
 package io.nexusrpc.handler;
 
-import java.util.Objects;
-
 import io.nexusrpc.Experimental;
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /** Details for handling operation fetch info. */

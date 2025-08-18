@@ -1,10 +1,9 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Experimental;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import io.nexusrpc.Experimental;
 import org.jspecify.annotations.Nullable;
 
 /** Content that can be fixed or streaming as a result of an operation. */
