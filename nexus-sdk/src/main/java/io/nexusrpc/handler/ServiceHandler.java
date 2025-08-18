@@ -67,8 +67,12 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
+    // Populate the service definition in the context so that the handler can use it
+    OperationContext contextWithServiceDef =
+        OperationContext.newBuilder(context).setServiceDefinition(instance.getDefinition()).build();
+
     OperationHandler<Object, Object> interceptedHandler =
-        interceptOperationHandler(context, handler);
+        interceptOperationHandler(contextWithServiceDef, handler);
     OperationDefinition definition =
         instance.getDefinition().getOperations().get(context.getOperation());
 
@@ -84,7 +88,8 @@ public class ServiceHandler implements Handler {
     }
 
     // Invoke handler
-    OperationStartResult<?> result = interceptedHandler.start(context, details, inputObject);
+    OperationStartResult<?> result =
+        interceptedHandler.start(contextWithServiceDef, details, inputObject);
 
     // If the result is an async result we can just return, but if it's a sync result we need to
     // serialize back out to bytes
@@ -108,7 +113,13 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    Object result = interceptOperationHandler(context, handler).fetchResult(context, details);
+    // Populate the service definition in the context so that the handler can use it
+    OperationContext contextWithServiceDef =
+        OperationContext.newBuilder(context).setServiceDefinition(instance.getDefinition()).build();
+
+    Object result =
+        interceptOperationHandler(contextWithServiceDef, handler)
+            .fetchResult(contextWithServiceDef, details);
     return resultToContent(result);
   }
 
@@ -136,7 +147,11 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    return interceptOperationHandler(context, handler).fetchInfo(context, details);
+    // Populate the service definition in the context so that the handler can use it
+    OperationContext contextWithServiceDef =
+        OperationContext.newBuilder(context).setServiceDefinition(instance.getDefinition()).build();
+    return interceptOperationHandler(contextWithServiceDef, handler)
+        .fetchInfo(contextWithServiceDef, details);
   }
 
   @Override
@@ -150,7 +165,11 @@ public class ServiceHandler implements Handler {
     if (handler == null) {
       throw newUnrecognizedOperationException(context.getService(), context.getOperation());
     }
-    interceptOperationHandler(context, handler).cancel(context, details);
+    // Populate the service definition in the context so that the handler can use it
+    OperationContext contextWithServiceDef =
+        OperationContext.newBuilder(context).setServiceDefinition(instance.getDefinition()).build();
+    interceptOperationHandler(contextWithServiceDef, handler)
+        .cancel(contextWithServiceDef, details);
   }
 
   private static HandlerException newUnrecognizedOperationException(

@@ -2,6 +2,7 @@ package io.nexusrpc.handler;
 
 import io.nexusrpc.Link;
 import java.time.Instant;
+import io.nexusrpc.ServiceDefinition;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -25,18 +26,21 @@ public class OperationContext {
   private final @Nullable OperationMethodCanceller methodCanceller;
   private final List<Link> links = new ArrayList<>();
   private final Instant deadline;
+  private final @Nullable ServiceDefinition serviceDefinition;
 
   private OperationContext(
       String service,
       String operation,
       Map<String, String> headers,
       @Nullable OperationMethodCanceller methodCanceller,
-      Instant deadline) {
+      Instant deadline,
+      @Nullable ServiceDefinition serviceDefinition) {
     this.service = service;
     this.operation = operation;
     this.headers = headers;
     this.methodCanceller = methodCanceller;
     this.deadline = deadline;
+    this.serviceDefinition = serviceDefinition;
   }
 
   /** Service name for the call. */
@@ -73,6 +77,11 @@ public class OperationContext {
    */
   public @Nullable String getMethodCancellationReason() {
     return methodCanceller == null ? null : methodCanceller.getCancellationReason();
+  }
+
+  /** Get the service definition associated with this operation context, if any. */
+  public @Nullable ServiceDefinition getServiceDefinition() {
+    return serviceDefinition;
   }
 
   /**
@@ -136,18 +145,19 @@ public class OperationContext {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OperationContext that = (OperationContext) o;
     return Objects.equals(service, that.service)
         && Objects.equals(operation, that.operation)
         && Objects.equals(headers, that.headers)
-        && Objects.equals(links, that.links);
+        && Objects.equals(methodCanceller, that.methodCanceller)
+        && Objects.equals(links, that.links)
+        && Objects.equals(serviceDefinition, that.serviceDefinition);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(service, operation, headers);
+    return Objects.hash(service, operation, headers, methodCanceller, links, serviceDefinition);
   }
 
   @Override
@@ -161,8 +171,12 @@ public class OperationContext {
         + '\''
         + ", headers="
         + headers
+        + ", methodCanceller="
+        + methodCanceller
         + ", links="
         + links
+        + ", serviceDefinition="
+        + serviceDefinition
         + '}';
   }
 
@@ -173,6 +187,7 @@ public class OperationContext {
     private final SortedMap<String, String> headers;
     private @Nullable OperationMethodCanceller methodCanceller;
     private @Nullable Instant deadline;
+    private @Nullable ServiceDefinition serviceDefinition;
 
     private Builder() {
       headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -182,6 +197,9 @@ public class OperationContext {
       service = context.service;
       operation = context.operation;
       headers = new TreeMap<>(context.headers);
+      methodCanceller = context.methodCanceller;
+      deadline = context.deadline;
+      serviceDefinition = context.serviceDefinition;
     }
 
     /** Set service. Required. */
@@ -219,6 +237,11 @@ public class OperationContext {
       return this;
     }
 
+    public Builder setServiceDefinition(ServiceDefinition serviceDefinition) {
+      this.serviceDefinition = serviceDefinition;
+      return this;
+    }
+
     /** Build the context. */
     public OperationContext build() {
       Objects.requireNonNull(service, "Service required");
@@ -236,7 +259,8 @@ public class OperationContext {
           operation,
           Collections.unmodifiableMap(new TreeMap<>(normalizedHeaders)),
           methodCanceller,
-          deadline);
+          deadline,
+          serviceDefinition);
     }
   }
 }
