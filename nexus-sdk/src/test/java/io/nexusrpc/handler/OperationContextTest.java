@@ -46,7 +46,7 @@ public class OperationContextTest {
   }
 
   @Test
-  void contextBuilderTest() {
+  void contextBuilderTest() throws URISyntaxException {
     OperationMethodCanceller omc = new OperationMethodCanceller();
     ServiceImplInstance serviceImpl = ServiceImplInstance.fromInstance(new IntegerServiceImpl());
     Instant deadline = Instant.now().plusMillis(1000);

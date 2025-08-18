@@ -153,13 +153,15 @@ public class OperationContext {
         && Objects.equals(operation, that.operation)
         && Objects.equals(headers, that.headers)
         && Objects.equals(methodCanceller, that.methodCanceller)
+        && Objects.equals(deadline, that.deadline)
         && Objects.equals(links, that.links)
         && Objects.equals(serviceDefinition, that.serviceDefinition);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(service, operation, headers, methodCanceller, links, serviceDefinition);
+    return Objects.hash(
+        service, operation, headers, methodCanceller, deadline, links, serviceDefinition);
   }
 
   @Override
@@ -175,6 +177,8 @@ public class OperationContext {
         + headers
         + ", methodCanceller="
         + methodCanceller
+        + ", deadline="
+        + deadline
         + ", links="
         + links
         + ", serviceDefinition="
@@ -245,6 +249,7 @@ public class OperationContext {
       return this;
     }
 
+    /** Sets the service definition. */
     public Builder setServiceDefinition(ServiceDefinition serviceDefinition) {
       this.serviceDefinition = serviceDefinition;
       return this;
