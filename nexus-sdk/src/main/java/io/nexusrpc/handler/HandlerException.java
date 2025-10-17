@@ -95,9 +95,11 @@ public class HandlerException extends RuntimeException {
       case UNAUTHENTICATED:
       case UNAUTHORIZED:
       case NOT_FOUND:
+      case CONFLICT:
       case NOT_IMPLEMENTED:
         return false;
       case RESOURCE_EXHAUSTED:
+      case REQUEST_TIMEOUT:
       case INTERNAL:
       case UNAVAILABLE:
       case UPSTREAM_TIMEOUT:
@@ -131,6 +133,18 @@ public class HandlerException extends RuntimeException {
      * not retry this request unless advised otherwise.
      */
     NOT_FOUND,
+    /**
+     * The request could not be made due to a conflict. This may happen when trying to create an
+     * operation that has already been started. Clients should not retry this request unless advised
+     * otherwise.
+     */
+    CONFLICT,
+    /**
+     * Returned by the server when it has given up handling a request. This may occur by enforcing a
+     * client provided {@code Request-Timeout} or for any arbitrary reason such as enforcing some
+     * configurable limit. Subsequent requests by the client are permissible.
+     */
+    REQUEST_TIMEOUT
     /**
      * Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system
      * is out of space. Subsequent requests by the client are permissible.
