@@ -144,7 +144,7 @@ public class HandlerException extends RuntimeException {
      * client provided {@code Request-Timeout} or for any arbitrary reason such as enforcing some
      * configurable limit. Subsequent requests by the client are permissible.
      */
-    REQUEST_TIMEOUT
+    REQUEST_TIMEOUT,
     /**
      * Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system
      * is out of space. Subsequent requests by the client are permissible.
