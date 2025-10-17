@@ -1,8 +1,6 @@
 package io.nexusrpc.handler;
 
 import io.nexusrpc.OperationException;
-import io.nexusrpc.OperationInfo;
-import io.nexusrpc.OperationStillRunningException;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -46,41 +44,6 @@ public interface OperationHandler<T, R> {
   OperationStartResult<R> start(
       OperationContext context, OperationStartDetails details, @Nullable T param)
       throws OperationException, HandlerException;
-
-  /**
-   * Fetch the result for an asynchronously started operation.
-   *
-   * @param context Context for the call.
-   * @param details Details for the call including the operation token. The details also contain a
-   *     timeout which affects how implementers should implement this function. See {@link
-   *     OperationFetchResultDetails#getTimeout()} to see how to react to this value.
-   * @return The resulting value upon success.
-   * @throws OperationStillRunningException Operation is still running beyond the given timeout.
-   * @throws OperationException Operation failed. If thrown, can have failure details and state such
-   *     as saying the operation was cancelled.
-   * @throws HandlerException Unexpected failures while running the handler. This should be thrown
-   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation token is not
-   *     found.
-   * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
-   *     of type {@link HandlerException.ErrorType#INTERNAL}.
-   */
-  @Nullable R fetchResult(OperationContext context, OperationFetchResultDetails details)
-      throws OperationStillRunningException, OperationException, HandlerException;
-
-  /**
-   * Fetch information about the asynchronously started operation.
-   *
-   * @param context Context for the call.
-   * @param details Details for the call including the operation token.
-   * @return Information about the operation.
-   * @throws HandlerException Unexpected failures while running the handler. This should be thrown
-   *     with a type of {@link HandlerException.ErrorType#NOT_FOUND} if the operation token is not
-   *     found.
-   * @throws RuntimeException Any other exception, will be converted to an {@link HandlerException}
-   *     of type {@link HandlerException.ErrorType#INTERNAL}.
-   */
-  OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
-      throws HandlerException;
 
   /**
    * Cancel the asynchronously started operation.
