@@ -163,7 +163,7 @@ public class ServiceHandlerTest {
   }
 
   @Test
-  void simpleGreetingService() throws OperationException, OperationStillRunningException {
+  void simpleGreetingService() throws OperationException {
     // Create API client
     AtomicReference<ApiClient> apiClientInternal = new AtomicReference<>();
     ApiClient apiClient = name -> apiClientInternal.get().createGreeting(name);
@@ -199,44 +199,13 @@ public class ServiceHandlerTest {
             Objects.requireNonNull(Objects.requireNonNull(result.getSyncResult()).getDataBytes()),
             StandardCharsets.UTF_8));
 
-    // Call handler form with regular name which uses asynchronous handling. First, have the API
-    // client wait.
-    AtomicReference<CompletableFuture<String>> pendingFuture = new AtomicReference<>();
+    // Test an async operation with a link
     apiClientInternal.set(
         name -> {
           assertTrue(name.startsWith("SomeUser"));
-          pendingFuture.set(new CompletableFuture<>());
-          return pendingFuture.get();
+          return new CompletableFuture<>();
         });
-    // Now call
-    result =
-        handler.startOperation(
-            newGreetingServiceContext("sayHello2"),
-            OperationStartDetails.newBuilder().setRequestId("request-id-3").build(),
-            newSimpleInputContent("SomeUser"));
-    String operationToken = Objects.requireNonNull(result.getAsyncOperationToken());
-    // Confirm future is waiting and info says it's running
-    OperationInfo info =
-        handler.fetchOperationInfo(
-            newGreetingServiceContext("sayHello2"),
-            OperationFetchInfoDetails.newBuilder().setOperationToken(operationToken).build());
-    assertEquals(OperationState.RUNNING, info.getState());
-    // Resolve future and confirm succeeded
-    Objects.requireNonNull(pendingFuture.get()).complete("Hello from API, SomeUser!");
-    info =
-        handler.fetchOperationInfo(
-            newGreetingServiceContext("sayHello2"),
-            OperationFetchInfoDetails.newBuilder().setOperationToken(operationToken).build());
-    assertEquals(OperationState.SUCCEEDED, info.getState());
-    // Check result
-    HandlerResultContent content =
-        handler.fetchOperationResult(
-            newGreetingServiceContext("sayHello2"),
-            OperationFetchResultDetails.newBuilder().setOperationToken(operationToken).build());
-    assertEquals(
-        "Hello from API, SomeUser!",
-        new String(Objects.requireNonNull(content.getDataBytes()), StandardCharsets.UTF_8));
-    // Test an async operation with a link
+
     OperationContext octx = newGreetingServiceContext("sayHello2");
     OperationStartResult<HandlerResultContent> resultWithLink =
         handler.startOperation(
@@ -327,21 +296,6 @@ public class ServiceHandlerTest {
           throws OperationException, HandlerException {
         operations.add(context.getOperation());
         return next.start(context, details, param);
-      }
-
-      @Override
-      public @Nullable Object fetchResult(
-          OperationContext context, OperationFetchResultDetails details)
-          throws OperationStillRunningException, OperationException, HandlerException {
-        operations.add(context.getOperation());
-        return next.fetchResult(context, details);
-      }
-
-      @Override
-      public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details)
-          throws HandlerException {
-        operations.add(context.getOperation());
-        return next.fetchInfo(context, details);
       }
 
       @Override

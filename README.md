@@ -10,8 +10,8 @@ Java SDK for working with [Nexus RPC](https://github.com/nexus-rpc/api).
 Nexus is a synchronous RPC protocol. Arbitrary length operations are modelled on top of a set of pre-defined synchronous RPCs.
 
 A Nexus caller calls a handler. The handler may respond inline or return a reference for a future, asynchronous
-operation. The caller can cancel an asynchronous operation, check for its outcome, or fetch its current state. The
-caller can also specify a callback URL, which the handler uses to asynchronously deliver the result of an operation when it is ready.
+operation. The caller can cancel an asynchronous operation using the returned token. The caller can also specify a
+callback URL, which the handler uses to asynchronously deliver the result of an operation when it is ready.
 
 ## Supported Java runtimes
 * Java 1.8+
