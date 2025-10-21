@@ -61,56 +61,6 @@ public class GreetingServiceImpl {
     }
 
     @Override
-    public String fetchResult(OperationContext context, OperationFetchResultDetails details)
-        throws OperationStillRunningException {
-      Future<String> operation = getOperation(details.getOperationToken());
-      try {
-        // When timeout missing, be done or fail
-        if (details.getTimeout() == null) {
-          if (!operation.isDone()) {
-            throw new OperationStillRunningException();
-          }
-          return operation.get();
-        }
-        // User willing to wait
-        try {
-          return operation.get(details.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
-        } catch (TimeoutException e) {
-          throw new OperationStillRunningException();
-        }
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      } catch (ExecutionException e) {
-        if (e.getCause() instanceof RuntimeException) {
-          throw (RuntimeException) e.getCause();
-        }
-        throw new RuntimeException(e.getCause());
-      }
-    }
-
-    @Override
-    public OperationInfo fetchInfo(OperationContext context, OperationFetchInfoDetails details) {
-      Future<String> operation = getOperation(details.getOperationToken());
-      OperationState state;
-      if (operation.isCancelled()) {
-        state = OperationState.CANCELED;
-      } else if (!operation.isDone()) {
-        state = OperationState.RUNNING;
-      } else {
-        try {
-          operation.get();
-          state = OperationState.SUCCEEDED;
-        } catch (Exception e) {
-          state = OperationState.FAILED;
-        }
-      }
-      return OperationInfo.newBuilder()
-          .setToken(details.getOperationToken())
-          .setState(state)
-          .build();
-    }
-
-    @Override
     public void cancel(OperationContext context, OperationCancelDetails details) {
       getOperation(details.getOperationToken()).cancel(true);
     }

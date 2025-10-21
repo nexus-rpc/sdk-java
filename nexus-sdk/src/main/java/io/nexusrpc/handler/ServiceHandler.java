@@ -100,29 +100,6 @@ public class ServiceHandler implements Handler {
     return OperationStartResult.sync(resultToContent(result.getSyncResult()));
   }
 
-  @Override
-  public HandlerResultContent fetchOperationResult(
-      OperationContext context, OperationFetchResultDetails details)
-      throws OperationStillRunningException, OperationException {
-    ServiceImplInstance instance = instances.get(context.getService());
-    if (instance == null) {
-      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
-    }
-    OperationHandler<Object, Object> handler =
-        instance.getOperationHandlers().get(context.getOperation());
-    if (handler == null) {
-      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
-    }
-    // Populate the service definition in the context so that the handler can use it
-    OperationContext contextWithServiceDef =
-        OperationContext.newBuilder(context).setServiceDefinition(instance.getDefinition()).build();
-
-    Object result =
-        interceptOperationHandler(contextWithServiceDef, handler)
-            .fetchResult(contextWithServiceDef, details);
-    return resultToContent(result);
-  }
-
   private HandlerResultContent resultToContent(Object result) {
     try {
       Serializer.Content output = serializer.serialize(result);
@@ -133,25 +110,6 @@ public class ServiceHandler implements Handler {
     } catch (Exception e) {
       throw new RuntimeException("Failed serializing result", e);
     }
-  }
-
-  @Override
-  public OperationInfo fetchOperationInfo(
-      OperationContext context, OperationFetchInfoDetails details) {
-    ServiceImplInstance instance = instances.get(context.getService());
-    if (instance == null) {
-      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
-    }
-    OperationHandler<Object, Object> handler =
-        instance.getOperationHandlers().get(context.getOperation());
-    if (handler == null) {
-      throw newUnrecognizedOperationException(context.getService(), context.getOperation());
-    }
-    // Populate the service definition in the context so that the handler can use it
-    OperationContext contextWithServiceDef =
-        OperationContext.newBuilder(context).setServiceDefinition(instance.getDefinition()).build();
-    return interceptOperationHandler(contextWithServiceDef, handler)
-        .fetchInfo(contextWithServiceDef, details);
   }
 
   @Override
