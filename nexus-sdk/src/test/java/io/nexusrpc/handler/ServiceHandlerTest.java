@@ -15,6 +15,48 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 public class ServiceHandlerTest {
+
+  public class Foo {
+    String x;
+  }
+
+  public class Bar extends Foo {
+    Integer x;
+  }
+
+  @Service
+  public interface CovariantService {
+    @Operation
+    Foo operation();
+  }
+
+  @ServiceImpl(service = CovariantService.class)
+  public class ValidCovariantServiceImpl {
+    @OperationImpl
+    public OperationHandler<Void, Foo> operation() {
+      return OperationHandler.sync((ctx, details, name) -> new Bar());
+    }
+  }
+
+  @ServiceImpl(service = CovariantService.class)
+  public class InvalidCovariantServiceImpl {
+    @OperationImpl
+    public OperationHandler<Void, Bar> operation() {
+      return OperationHandler.sync((ctx, details, name) -> new Bar());
+    }
+  }
+
+  @Test
+  void covariantService() {
+    assertThrows(
+        RuntimeException.class,
+        () -> ServiceImplInstance.fromInstance(new InvalidCovariantServiceImpl()));
+
+    ServiceImplInstance serviceImpl =
+        ServiceImplInstance.fromInstance(new ValidCovariantServiceImpl());
+    assertEquals(1, serviceImpl.getOperationHandlers().size());
+  }
+
   @ServiceImpl(service = TestServices.GenericService.class)
   public class GenericServiceMissingOperationImpl {}
 
@@ -199,7 +241,8 @@ public class ServiceHandlerTest {
             Objects.requireNonNull(Objects.requireNonNull(result.getSyncResult()).getDataBytes()),
             StandardCharsets.UTF_8));
 
-    // Call handler form with regular name which uses asynchronous handling. First, have the API
+    // Call handler form with regular name which uses asynchronous handling. First,
+    // have the API
     // client wait.
     AtomicReference<CompletableFuture<String>> pendingFuture = new AtomicReference<>();
     apiClientInternal.set(
