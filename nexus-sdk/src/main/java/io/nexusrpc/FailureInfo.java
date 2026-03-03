@@ -20,13 +20,13 @@ public class FailureInfo {
   }
 
   private final String message;
-  private final String stackTrace;
+  private final @Nullable String stackTrace;
   private final Map<String, String> metadata;
   private final @Nullable String detailsJson;
 
   private FailureInfo(
       String message,
-      String stackTrace,
+      @Nullable String stackTrace,
       Map<String, String> metadata,
       @Nullable String detailsJson) {
     this.message = message;
@@ -41,7 +41,7 @@ public class FailureInfo {
   }
 
   /** Failure stack trace. */
-  public String getStackTrace() {
+  public @Nullable String getStackTrace() {
     return stackTrace;
   }
 

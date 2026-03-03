@@ -11,6 +11,11 @@ public class OperationException extends Exception {
     this.state = state;
   }
 
+  private OperationException(OperationState state, @Nullable Throwable cause) {
+    super(cause);
+    this.state = state;
+  }
+
   /**
    * Create a failed operation exception with a message.
    *
@@ -28,7 +33,7 @@ public class OperationException extends Exception {
    * @return The operation exception.
    */
   public static OperationException failure(Throwable cause) {
-    return new OperationException(OperationState.FAILED, cause.toString(), cause);
+    return new OperationException(OperationState.FAILED, cause);
   }
 
   /**
@@ -59,7 +64,7 @@ public class OperationException extends Exception {
    * @return The operation exception.
    */
   public static OperationException canceled(Throwable cause) {
-    return new OperationException(OperationState.CANCELED, cause.toString(), cause);
+    return new OperationException(OperationState.CANCELED, cause);
   }
 
   /**

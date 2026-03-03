@@ -41,7 +41,8 @@ public class HandlerException extends RuntimeException {
    *
    * @param errorType The error type.
    * @param causeMessage The cause message.
-   * @deprecated
+   * @deprecated Use {@link #HandlerException(ErrorType, String, Throwable)} instead. This
+   *     constructor will be removed in a future release.
    */
   public HandlerException(ErrorType errorType, String causeMessage) {
     this(errorType, new RuntimeException(causeMessage), RetryBehavior.UNSPECIFIED);
@@ -53,7 +54,8 @@ public class HandlerException extends RuntimeException {
    * @param errorType The error type.
    * @param causeMessage The cause message.
    * @param retryBehavior The retry behavior for this exception.
-   * @deprecated
+   * @deprecated Use {@link #HandlerException(ErrorType, String, Throwable, RetryBehavior)} instead.
+   *     This constructor will be removed in a future release.
    */
   public HandlerException(ErrorType errorType, String causeMessage, RetryBehavior retryBehavior) {
     this(errorType, new RuntimeException(causeMessage), retryBehavior);
