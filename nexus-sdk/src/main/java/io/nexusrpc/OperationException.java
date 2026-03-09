@@ -52,7 +52,8 @@ public class OperationException extends Exception {
    *
    * @param cause The cause of the failure.
    * @return The operation exception.
-   * @deprecated Use {@link #failed(Throwable)} instead.
+   * @deprecated Use {@link #failed(Throwable)} instead. This factory method will be removed in a
+   *     future release.
    */
   @Deprecated
   public static OperationException failure(Throwable cause) {
