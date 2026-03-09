@@ -20,11 +20,17 @@ public class FailureInfo {
   }
 
   private final String message;
+  private final @Nullable String stackTrace;
   private final Map<String, String> metadata;
   private final @Nullable String detailsJson;
 
-  private FailureInfo(String message, Map<String, String> metadata, @Nullable String detailsJson) {
+  private FailureInfo(
+      String message,
+      @Nullable String stackTrace,
+      Map<String, String> metadata,
+      @Nullable String detailsJson) {
     this.message = message;
+    this.stackTrace = stackTrace;
     this.metadata = metadata;
     this.detailsJson = detailsJson;
   }
@@ -32,6 +38,11 @@ public class FailureInfo {
   /** Failure message. */
   public String getMessage() {
     return message;
+  }
+
+  /** Failure stack trace. */
+  public @Nullable String getStackTrace() {
+    return stackTrace;
   }
 
   /** Failure metadata. */
@@ -50,13 +61,14 @@ public class FailureInfo {
     if (o == null || getClass() != o.getClass()) return false;
     FailureInfo that = (FailureInfo) o;
     return Objects.equals(message, that.message)
+        && Objects.equals(stackTrace, that.stackTrace)
         && Objects.equals(metadata, that.metadata)
         && Objects.equals(detailsJson, that.detailsJson);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(message, metadata, detailsJson);
+    return Objects.hash(message, stackTrace, metadata, detailsJson);
   }
 
   @Override
@@ -64,6 +76,9 @@ public class FailureInfo {
     return "OperationFailure{"
         + "message='"
         + message
+        + '\''
+        + ", stackTrace='"
+        + stackTrace
         + '\''
         + ", metadata="
         + metadata
@@ -75,6 +90,7 @@ public class FailureInfo {
   /** Builder for an operation failure. */
   public static class Builder {
     private @Nullable String message;
+    private @Nullable String stackTrace;
     private final Map<String, String> metadata;
     private @Nullable String detailsJson;
 
@@ -84,6 +100,7 @@ public class FailureInfo {
 
     private Builder(FailureInfo failure) {
       message = failure.message;
+      stackTrace = failure.stackTrace;
       metadata = new HashMap<>(failure.metadata);
       detailsJson = failure.detailsJson;
     }
@@ -111,11 +128,17 @@ public class FailureInfo {
       return this;
     }
 
+    /** Set stack trace. */
+    public Builder setStackTrace(@Nullable String stackTrace) {
+      this.stackTrace = stackTrace;
+      return this;
+    }
+
     /** Build the operation failure. */
     public FailureInfo build() {
       Objects.requireNonNull(message, "Message required");
       return new FailureInfo(
-          message, Collections.unmodifiableMap(new HashMap<>(metadata)), detailsJson);
+          message, stackTrace, Collections.unmodifiableMap(new HashMap<>(metadata)), detailsJson);
     }
   }
 }

@@ -1,5 +1,6 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.FailureInfo;
 import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 
@@ -33,36 +34,162 @@ public class HandlerException extends RuntimeException {
   private final String rawErrorType;
   private final ErrorType errorType;
   private final RetryBehavior retryBehavior;
+  private final FailureInfo originalFailure;
 
-  public HandlerException(ErrorType errorType, String message) {
-    this(errorType, new RuntimeException(message), RetryBehavior.UNSPECIFIED);
+  /**
+   * Create a handler exception with the given error type and cause message.
+   *
+   * @param errorType The error type.
+   * @param causeMessage The cause message.
+   * @deprecated Use {@link #HandlerException(ErrorType, String, Throwable)} instead. This
+   *     constructor will be removed in a future release.
+   */
+  public HandlerException(ErrorType errorType, String causeMessage) {
+    this(errorType, new RuntimeException(causeMessage), RetryBehavior.UNSPECIFIED);
   }
 
-  public HandlerException(ErrorType errorType, String message, RetryBehavior retryBehavior) {
-    this(errorType, new RuntimeException(message), retryBehavior);
+  /**
+   * Create a handler exception with the given error type and cause message.
+   *
+   * @param errorType The error type.
+   * @param causeMessage The cause message.
+   * @param retryBehavior The retry behavior for this exception.
+   * @deprecated Use {@link #HandlerException(ErrorType, String, Throwable, RetryBehavior)} instead.
+   *     This constructor will be removed in a future release.
+   */
+  public HandlerException(ErrorType errorType, String causeMessage, RetryBehavior retryBehavior) {
+    this(errorType, new RuntimeException(causeMessage), retryBehavior);
   }
 
+  /**
+   * Create a handler exception with the given error type, message, and cause.
+   *
+   * @param errorType The error type.
+   * @param message The error message.
+   * @param cause The cause of this exception.
+   */
+  public HandlerException(ErrorType errorType, String message, @Nullable Throwable cause) {
+    this(errorType, message, cause, RetryBehavior.UNSPECIFIED);
+  }
+
+  /**
+   * Create a handler exception with the given error type and cause.
+   *
+   * @param errorType The error type.
+   * @param cause The cause of this exception.
+   */
   public HandlerException(ErrorType errorType, @Nullable Throwable cause) {
     this(errorType, cause, RetryBehavior.UNSPECIFIED);
   }
 
+  /**
+   * Create a handler exception with the given error type, cause, and retry behavior.
+   *
+   * @param errorType The error type.
+   * @param cause The cause of this exception.
+   * @param retryBehavior The retry behavior for this exception.
+   */
   public HandlerException(
       ErrorType errorType, @Nullable Throwable cause, RetryBehavior retryBehavior) {
-    super(cause == null ? "handler error" : "handler error: " + cause.getMessage(), cause);
-    this.rawErrorType = errorType.name();
-    this.errorType = errorType;
-    this.retryBehavior = retryBehavior;
+    this(
+        errorType,
+        cause == null ? "handler error" : "handler error: " + cause.getMessage(),
+        cause,
+        retryBehavior);
   }
 
+  /**
+   * Create a handler exception with the given error type, message, cause, and retry behavior.
+   *
+   * @param errorType The error type.
+   * @param message The error message.
+   * @param cause The cause of this exception.
+   * @param retryBehavior The retry behavior for this exception.
+   */
+  public HandlerException(
+      ErrorType errorType, String message, @Nullable Throwable cause, RetryBehavior retryBehavior) {
+    this(errorType, message, cause, retryBehavior, null);
+  }
+
+  /**
+   * Create a handler exception with the given error type, message, cause, retry behavior, and
+   * original failure.
+   *
+   * @param errorType The error type.
+   * @param message The error message.
+   * @param cause The cause of this exception.
+   * @param retryBehavior The retry behavior for this exception.
+   * @param originalFailure The original failure information if available.
+   */
+  public HandlerException(
+      ErrorType errorType,
+      String message,
+      @Nullable Throwable cause,
+      RetryBehavior retryBehavior,
+      FailureInfo originalFailure) {
+    super(message, cause);
+    this.rawErrorType = errorType.name();
+    this.errorType =
+        Arrays.stream(ErrorType.values()).anyMatch((t) -> t.name().equals(rawErrorType))
+            ? ErrorType.valueOf(rawErrorType)
+            : ErrorType.UNKNOWN;
+    this.retryBehavior = retryBehavior;
+    this.originalFailure = originalFailure;
+  }
+
+  /**
+   * Create a handler exception with a raw error type string, cause, and retry behavior.
+   *
+   * @param rawErrorType The raw error type string.
+   * @param cause The cause of this exception.
+   * @param retryBehavior The retry behavior for this exception.
+   */
   public HandlerException(
       String rawErrorType, @Nullable Throwable cause, RetryBehavior retryBehavior) {
-    super(cause == null ? "handler error" : "handler error: " + cause.getMessage(), cause);
+    this(
+        rawErrorType,
+        cause == null ? "handler error" : "handler error: " + cause.getMessage(),
+        cause,
+        retryBehavior);
+  }
+
+  /**
+   * Create a handler exception with a raw error type string, message, cause, and retry behavior.
+   *
+   * @param rawErrorType The raw error type string.
+   * @param message The error message.
+   * @param cause The cause of this exception.
+   * @param retryBehavior The retry behavior for this exception.
+   */
+  public HandlerException(
+      String rawErrorType, String message, @Nullable Throwable cause, RetryBehavior retryBehavior) {
+    this(rawErrorType, message, cause, retryBehavior, null);
+  }
+
+  /**
+   * Create a handler exception with a raw error type string, message, cause, retry behavior, and
+   * original failure.
+   *
+   * @param rawErrorType The raw error type string.
+   * @param message The error message.
+   * @param cause The cause of this exception.
+   * @param retryBehavior The retry behavior for this exception.
+   * @param originalFailure The original failure information if available.
+   */
+  public HandlerException(
+      String rawErrorType,
+      String message,
+      @Nullable Throwable cause,
+      RetryBehavior retryBehavior,
+      @Nullable FailureInfo originalFailure) {
+    super(message, cause);
     this.rawErrorType = rawErrorType;
     this.errorType =
         Arrays.stream(ErrorType.values()).anyMatch((t) -> t.name().equals(rawErrorType))
             ? ErrorType.valueOf(rawErrorType)
             : ErrorType.UNKNOWN;
     this.retryBehavior = retryBehavior;
+    this.originalFailure = originalFailure;
   }
 
   /**
@@ -84,6 +211,12 @@ public class HandlerException extends RuntimeException {
   /** Retry behavior for this exception. */
   public RetryBehavior getRetryBehavior() {
     return retryBehavior;
+  }
+
+  /** Original FailureInfo if available */
+  @Nullable
+  public FailureInfo getOriginalFailure() {
+    return originalFailure;
   }
 
   public boolean isRetryable() {
