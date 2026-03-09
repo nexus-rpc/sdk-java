@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Serializer used to convert values to bytes and vice-versa. */
+@Experimental
 public interface Serializer {
   /** Serialize the value as content. */
   Content serialize(@Nullable Object value);

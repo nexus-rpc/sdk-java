@@ -5,6 +5,7 @@ import java.util.*;
 import org.jspecify.annotations.Nullable;
 
 /** Handler that delegates to service implementations. */
+@Experimental
 public class ServiceHandler implements Handler {
   /** Create a builder for a service handler. */
   public static Builder newBuilder() {

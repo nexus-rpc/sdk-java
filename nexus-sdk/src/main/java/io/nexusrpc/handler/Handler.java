@@ -1,8 +1,10 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Experimental;
 import io.nexusrpc.OperationException;
 
 /** Top-level handler for service calls. */
+@Experimental
 public interface Handler {
   /**
    * Handle the start of an operation. See {@link OperationHandler#start} for operation details.
