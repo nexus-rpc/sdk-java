@@ -22,7 +22,7 @@ public class OperationException extends Exception {
    * @param message The failure message.
    * @return The operation exception.
    */
-  public static OperationException failure(String message) {
+  public static OperationException failed(String message) {
     return new OperationException(OperationState.FAILED, message, null);
   }
 
@@ -32,7 +32,7 @@ public class OperationException extends Exception {
    * @param cause The cause of the failure.
    * @return The operation exception.
    */
-  public static OperationException failure(Throwable cause) {
+  public static OperationException failed(Throwable cause) {
     return new OperationException(OperationState.FAILED, cause);
   }
 
@@ -43,8 +43,20 @@ public class OperationException extends Exception {
    * @param cause The cause of the failure.
    * @return The operation exception.
    */
-  public static OperationException failure(String message, Throwable cause) {
+  public static OperationException failed(String message, Throwable cause) {
     return new OperationException(OperationState.FAILED, message, cause);
+  }
+
+  /**
+   * Create a failed operation exception with a cause.
+   *
+   * @param cause The cause of the failure.
+   * @return The operation exception.
+   * @deprecated Use {@link #failed(Throwable)} instead.
+   */
+  @Deprecated
+  public static OperationException failure(Throwable cause) {
+    return failed(cause);
   }
 
   /**

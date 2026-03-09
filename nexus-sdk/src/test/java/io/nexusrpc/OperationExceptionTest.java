@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 public class OperationExceptionTest {
   @Test
   void failureWithMessage() {
-    OperationException ex = OperationException.failure("Test failure");
+    OperationException ex = OperationException.failed("Test failure");
 
     assertEquals("Test failure", ex.getMessage());
     assertNull(ex.getCause());
@@ -17,7 +17,7 @@ public class OperationExceptionTest {
   @Test
   void failureWithCause() {
     RuntimeException cause = new RuntimeException("Root cause");
-    OperationException ex = OperationException.failure(cause);
+    OperationException ex = OperationException.failed(cause);
 
     assertEquals(cause.toString(), ex.getMessage());
     assertEquals(cause, ex.getCause());
@@ -27,7 +27,7 @@ public class OperationExceptionTest {
   @Test
   void failureWithMessageAndCause() {
     RuntimeException cause = new RuntimeException("Root cause");
-    OperationException ex = OperationException.failure("Custom message", cause);
+    OperationException ex = OperationException.failed("Custom message", cause);
 
     assertEquals("Custom message", ex.getMessage());
     assertEquals(cause, ex.getCause());
@@ -67,7 +67,7 @@ public class OperationExceptionTest {
   void exceptionChaining() {
     Exception rootCause = new Exception("Root cause");
     RuntimeException intermediateCause = new RuntimeException("Intermediate", rootCause);
-    OperationException ex = OperationException.failure("Operation failed", intermediateCause);
+    OperationException ex = OperationException.failed("Operation failed", intermediateCause);
 
     assertEquals("Operation failed", ex.getMessage());
     assertEquals(intermediateCause, ex.getCause());
