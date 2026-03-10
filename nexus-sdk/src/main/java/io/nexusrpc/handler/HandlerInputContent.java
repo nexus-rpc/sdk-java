@@ -1,5 +1,6 @@
 package io.nexusrpc.handler;
 
+import io.nexusrpc.Experimental;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Content that can be fixed or streaming for start operation input. */
+@Experimental
 public class HandlerInputContent {
   /** Create a builder for content. */
   public static Builder newBuilder() {
