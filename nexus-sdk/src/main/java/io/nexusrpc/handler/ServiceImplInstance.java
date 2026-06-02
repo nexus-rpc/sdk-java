@@ -18,6 +18,20 @@ public class ServiceImplInstance {
    * operations.
    */
   public static ServiceImplInstance fromInstance(Object instance) {
+    return fromInstance(instance, Collections.emptyList());
+  }
+
+  /**
+   * Create a service instance from the given object instance, with additional {@link
+   * MethodExtension}s consulted for each scanned method. Extensions let frameworks recognize their
+   * own operation-handler annotations alongside {@link OperationImpl}.
+   *
+   * <p>For every method on the service class, {@link OperationImpl} is processed first; then each
+   * extension is invoked. Duplicate operation registrations across {@link OperationImpl} and any
+   * extension fail the build.
+   */
+  public static ServiceImplInstance fromInstance(
+      Object instance, List<MethodExtension> extensions) {
     // Expect the annotation on the class of the instance itself, do not expect it to be inherited
     // and go searching through superclasses
     ServiceImpl serviceImpl = instance.getClass().getDeclaredAnnotation(ServiceImpl.class);
@@ -39,14 +53,29 @@ public class ServiceImplInstance {
     Builder builder = newBuilder().setDefinition(serviceDefinition);
     for (Method method : methods) {
       OperationImpl operationImpl = method.getDeclaredAnnotation(OperationImpl.class);
-      if (operationImpl == null) {
-        continue;
+      if (operationImpl != null) {
+        try {
+          addOperationHandler(builder, serviceDefinition, instance, method);
+        } catch (Exception e) {
+          throw new RuntimeException(
+              "Failed obtaining operation handler from " + method.getName(), e);
+        }
       }
-      try {
-        addOperationHandler(builder, serviceDefinition, instance, method);
-      } catch (Exception e) {
-        throw new RuntimeException(
-            "Failed obtaining operation handler from " + method.getName(), e);
+      for (MethodExtension extension : extensions) {
+        MethodExtension.Result result = extension.extract(instance, method, serviceDefinition);
+        if (result == null) {
+          continue;
+        }
+        if (builder.operationHandlers.containsKey(result.getOperationName())) {
+          throw new IllegalStateException(
+              "Operation name "
+                  + result.getOperationName()
+                  + " is registered by both "
+                  + builder.operationHandlers.get(result.getOperationName())
+                  + " and "
+                  + extension.getClass().getName());
+        }
+        builder.putOperationHandler(result.getOperationName(), result.getHandler());
       }
     }
 
@@ -119,7 +148,12 @@ public class ServiceImplInstance {
 
     // Add to builder
     if (builder.operationHandlers.containsKey(operationDefinition.getName())) {
-      throw new RuntimeException("Multiple overloads with @OperationImpl");
+      throw new IllegalStateException(
+          "Operation name "
+              + operationDefinition.getName()
+              + " is registered by both "
+              + method.getName()
+              + " and an earlier handler");
     }
     builder.putOperationHandler(operationDefinition.getName(), (OperationHandler<?, ?>) handler);
   }
