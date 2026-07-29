@@ -1,6 +1,7 @@
 package io.nexusrpc.handler;
 
 import io.nexusrpc.*;
+import java.io.IOException;
 import java.util.*;
 import org.jspecify.annotations.Nullable;
 
@@ -77,16 +78,16 @@ public class ServiceHandler implements Handler {
     OperationDefinition definition =
         instance.getDefinition().getOperations().get(context.getOperation());
 
-    Object inputObject;
+    // Read the input bytes
+    Serializer.Content.Builder contentBuilder = Serializer.Content.newBuilder();
     try {
-      // Deserialize to expected input type
-      Serializer.Content.Builder contentBuilder = Serializer.Content.newBuilder();
       contentBuilder.setData(input.consumeBytes());
-      contentBuilder.getHeaders().putAll(input.getHeaders());
-      inputObject = serializer.deserialize(contentBuilder.build(), definition.getInputType());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed deserializing input", e);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed reading input", e);
     }
+    contentBuilder.getHeaders().putAll(input.getHeaders());
+    // Deserialize to expected input type; serializer errors propagate as-is
+    Object inputObject = serializer.deserialize(contentBuilder.build(), definition.getInputType());
 
     // Invoke handler
     OperationStartResult<?> result =
@@ -102,15 +103,11 @@ public class ServiceHandler implements Handler {
   }
 
   private HandlerResultContent resultToContent(Object result) {
-    try {
-      Serializer.Content output = serializer.serialize(result);
-      HandlerResultContent.Builder contentBuilder = HandlerResultContent.newBuilder();
-      contentBuilder.setData(output.getData());
-      contentBuilder.getHeaders().putAll(output.getHeaders());
-      return contentBuilder.build();
-    } catch (Exception e) {
-      throw new RuntimeException("Failed serializing result", e);
-    }
+    Serializer.Content output = serializer.serialize(result);
+    HandlerResultContent.Builder contentBuilder = HandlerResultContent.newBuilder();
+    contentBuilder.setData(output.getData());
+    contentBuilder.getHeaders().putAll(output.getHeaders());
+    return contentBuilder.build();
   }
 
   @Override
