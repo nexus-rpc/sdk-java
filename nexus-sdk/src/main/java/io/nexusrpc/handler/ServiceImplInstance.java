@@ -18,6 +18,21 @@ public class ServiceImplInstance {
    * operations.
    */
   public static ServiceImplInstance fromInstance(Object instance) {
+    return fromInstance(instance, Collections.emptyList());
+  }
+
+  /**
+   * Create a service instance from the given object instance, with additional {@link
+   * MethodExtension}s consulted for each scanned method. Extensions let frameworks recognize their
+   * own operation-handler annotations alongside {@link OperationImpl}.
+   *
+   * <p>Extensions are only consulted for methods without {@link OperationImpl} that map by method
+   * name to an operation on the service. They are consulted in list order, and the first extension
+   * to return a handler claims the method.
+   */
+  public static ServiceImplInstance fromInstance(
+      Object instance, List<MethodExtension> extensions) {
+    Objects.requireNonNull(extensions, "extensions");
     // Expect the annotation on the class of the instance itself, do not expect it to be inherited
     // and go searching through superclasses
     ServiceImpl serviceImpl = instance.getClass().getDeclaredAnnotation(ServiceImpl.class);
@@ -39,14 +54,40 @@ public class ServiceImplInstance {
     Builder builder = newBuilder().setDefinition(serviceDefinition);
     for (Method method : methods) {
       OperationImpl operationImpl = method.getDeclaredAnnotation(OperationImpl.class);
-      if (operationImpl == null) {
+      if (operationImpl != null) {
+        try {
+          addOperationHandler(builder, serviceDefinition, instance, method);
+        } catch (Exception e) {
+          throw new RuntimeException(
+              "Failed obtaining operation handler from " + method.getName(), e);
+        }
         continue;
       }
-      try {
-        addOperationHandler(builder, serviceDefinition, instance, method);
-      } catch (Exception e) {
-        throw new RuntimeException(
-            "Failed obtaining operation handler from " + method.getName(), e);
+      OperationDefinition operationDefinition =
+          serviceDefinition.getOperations().values().stream()
+              .filter(o -> method.getName().equals(o.getMethodName()))
+              .findAny()
+              .orElse(null);
+      if (operationDefinition == null) {
+        continue;
+      }
+      for (MethodExtension extension : extensions) {
+        OperationHandler<?, ?> handler;
+        try {
+          handler = extension.extract(instance, method, operationDefinition);
+        } catch (Exception e) {
+          throw new RuntimeException(
+              "Failed obtaining operation handler from " + method.getName(), e);
+        }
+        if (handler == null) {
+          continue;
+        }
+        if (builder.operationHandlers.containsKey(operationDefinition.getName())) {
+          throw new IllegalStateException(
+              "Duplicate operation handler for operation '" + operationDefinition.getName() + "'");
+        }
+        builder.putOperationHandler(operationDefinition.getName(), handler);
+        break;
       }
     }
 
@@ -119,7 +160,12 @@ public class ServiceImplInstance {
 
     // Add to builder
     if (builder.operationHandlers.containsKey(operationDefinition.getName())) {
-      throw new RuntimeException("Multiple overloads with @OperationImpl");
+      throw new IllegalStateException(
+          "Operation name "
+              + operationDefinition.getName()
+              + " is registered by both "
+              + method.getName()
+              + " and an earlier handler");
     }
     builder.putOperationHandler(operationDefinition.getName(), (OperationHandler<?, ?>) handler);
   }
@@ -209,9 +255,6 @@ public class ServiceImplInstance {
     /** Build the instance. */
     public ServiceImplInstance build() {
       Objects.requireNonNull(definition, "Service definition required");
-      if (operationHandlers.isEmpty()) {
-        throw new IllegalStateException("No operation handlers defined");
-      }
 
       // Check all operations have handlers and that all operations correspond to handlers
       SortedSet<String> forDiff = new TreeSet<>(definition.getOperations().keySet());

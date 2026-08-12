@@ -7,14 +7,54 @@ import io.nexusrpc.example.ApiClient;
 import io.nexusrpc.example.GreetingServiceImpl;
 import io.nexusrpc.example.TestServices;
 import java.io.ByteArrayInputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 public class ServiceHandlerTest {
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.METHOD)
+  private @interface Marker {}
+
+  @Service
+  public interface RenamedOperationService {
+    @Operation(name = "renamed-operation")
+    String operation(String input);
+  }
+
+  @ServiceImpl(service = RenamedOperationService.class)
+  public class OperationViaExtension {
+    @Marker
+    public String operation(String input) {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  @ServiceImpl(service = RenamedOperationService.class)
+  public class OperationImplAndExtension {
+    @OperationImpl
+    @Marker
+    public OperationHandler<String, String> operation() {
+      return OperationHandler.sync((ctx, details, input) -> "built-in");
+    }
+  }
+
+  @ServiceImpl(service = TestServices.GenericService.class)
+  public class ExtensionMethodNotAnOperation {
+    @Marker
+    public String doesNotExist(String input) {
+      throw new UnsupportedOperationException();
+    }
+  }
+
   @ServiceImpl(service = TestServices.GenericService.class)
   public class GenericServiceMissingOperationImpl {}
 
@@ -80,6 +120,82 @@ public class ServiceHandlerTest {
     public OperationHandler<Map<String, List<Integer>>, Map<String, List<Integer>>> operation() {
       return OperationHandler.sync((ctx, details, input) -> null);
     }
+  }
+
+  @Test
+  void fromInstanceWithExtensionUsesExtensionHandler() {
+    AtomicReference<OperationDefinition> extractedDefinition = new AtomicReference<>();
+    MethodExtension extension =
+        (instance, method, operationDefinition) -> {
+          if (method.getDeclaredAnnotation(Marker.class) == null) {
+            return null;
+          }
+          extractedDefinition.set(operationDefinition);
+          return OperationHandler.sync((ctx, details, input) -> "extension: " + input);
+        };
+
+    ServiceImplInstance serviceImpl =
+        ServiceImplInstance.fromInstance(
+            new OperationViaExtension(), Collections.singletonList(extension));
+
+    assertEquals("renamed-operation", extractedDefinition.get().getName());
+    assertEquals(
+        "renamed-operation", serviceImpl.getOperationHandlers().keySet().iterator().next());
+  }
+
+  @Test
+  void operationImplTakesPrecedenceOverExtensions() {
+    MethodExtension extension =
+        (instance, method, operationDefinition) -> {
+          fail("Extension should not be consulted for an @OperationImpl method");
+          return null;
+        };
+
+    ServiceImplInstance serviceImpl =
+        ServiceImplInstance.fromInstance(
+            new OperationImplAndExtension(), Collections.singletonList(extension));
+
+    assertEquals(
+        "renamed-operation", serviceImpl.getOperationHandlers().keySet().iterator().next());
+  }
+
+  @Test
+  void firstExtensionToClaimMethodWins() {
+    AtomicInteger secondExtensionCalls = new AtomicInteger();
+    MethodExtension first =
+        (instance, method, operationDefinition) ->
+            OperationHandler.sync((ctx, details, input) -> "first");
+    MethodExtension second =
+        (instance, method, operationDefinition) -> {
+          secondExtensionCalls.incrementAndGet();
+          return OperationHandler.sync((ctx, details, input) -> "second");
+        };
+
+    ServiceImplInstance serviceImpl =
+        ServiceImplInstance.fromInstance(new OperationViaExtension(), Arrays.asList(first, second));
+
+    assertEquals(
+        "renamed-operation", serviceImpl.getOperationHandlers().keySet().iterator().next());
+    assertEquals(0, secondExtensionCalls.get());
+  }
+
+  @Test
+  void extensionsAreOnlyConsultedForServiceOperations() {
+    AtomicInteger extensionCalls = new AtomicInteger();
+    MethodExtension extension =
+        (instance, method, operationDefinition) -> {
+          extensionCalls.incrementAndGet();
+          return OperationHandler.sync((ctx, details, input) -> "extension");
+        };
+
+    IllegalStateException exception =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                ServiceImplInstance.fromInstance(
+                    new ExtensionMethodNotAnOperation(), Collections.singletonList(extension)));
+    assertEquals("Missing handlers for service operations: operation", exception.getMessage());
+    assertEquals(0, extensionCalls.get());
   }
 
   @Test
