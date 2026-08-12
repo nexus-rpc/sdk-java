@@ -26,12 +26,13 @@ public class ServiceImplInstance {
    * MethodExtension}s consulted for each scanned method. Extensions let frameworks recognize their
    * own operation-handler annotations alongside {@link OperationImpl}.
    *
-   * <p>For every method on the service class, {@link OperationImpl} is processed first; then each
-   * extension is invoked. Duplicate operation registrations across {@link OperationImpl} and any
-   * extension fail the build.
+   * <p>Extensions are only consulted for methods without {@link OperationImpl} that map by method
+   * name to an operation on the service. They are consulted in list order, and the first extension
+   * to return a handler claims the method.
    */
   public static ServiceImplInstance fromInstance(
       Object instance, List<MethodExtension> extensions) {
+    Objects.requireNonNull(extensions, "extensions");
     // Expect the annotation on the class of the instance itself, do not expect it to be inherited
     // and go searching through superclasses
     ServiceImpl serviceImpl = instance.getClass().getDeclaredAnnotation(ServiceImpl.class);
@@ -60,22 +61,33 @@ public class ServiceImplInstance {
           throw new RuntimeException(
               "Failed obtaining operation handler from " + method.getName(), e);
         }
+        continue;
+      }
+      OperationDefinition operationDefinition =
+          serviceDefinition.getOperations().values().stream()
+              .filter(o -> method.getName().equals(o.getMethodName()))
+              .findAny()
+              .orElse(null);
+      if (operationDefinition == null) {
+        continue;
       }
       for (MethodExtension extension : extensions) {
-        MethodExtension.Result result = extension.extract(instance, method, serviceDefinition);
-        if (result == null) {
+        OperationHandler<?, ?> handler;
+        try {
+          handler = extension.extract(instance, method, operationDefinition);
+        } catch (Exception e) {
+          throw new RuntimeException(
+              "Failed obtaining operation handler from " + method.getName(), e);
+        }
+        if (handler == null) {
           continue;
         }
-        if (builder.operationHandlers.containsKey(result.getOperationName())) {
+        if (builder.operationHandlers.containsKey(operationDefinition.getName())) {
           throw new IllegalStateException(
-              "Operation name "
-                  + result.getOperationName()
-                  + " is registered by both "
-                  + builder.operationHandlers.get(result.getOperationName())
-                  + " and "
-                  + extension.getClass().getName());
+              "Duplicate operation handler for operation '" + operationDefinition.getName() + "'");
         }
-        builder.putOperationHandler(result.getOperationName(), result.getHandler());
+        builder.putOperationHandler(operationDefinition.getName(), handler);
+        break;
       }
     }
 
@@ -243,9 +255,6 @@ public class ServiceImplInstance {
     /** Build the instance. */
     public ServiceImplInstance build() {
       Objects.requireNonNull(definition, "Service definition required");
-      if (operationHandlers.isEmpty()) {
-        throw new IllegalStateException("No operation handlers defined");
-      }
 
       // Check all operations have handlers and that all operations correspond to handlers
       SortedSet<String> forDiff = new TreeSet<>(definition.getOperations().keySet());
