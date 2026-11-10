@@ -1,6 +1,5 @@
 package io.nexusrpc.handler;
 
-import io.nexusrpc.Experimental;
 import io.nexusrpc.OperationException;
 import org.jspecify.annotations.Nullable;
 
@@ -14,7 +13,6 @@ import org.jspecify.annotations.Nullable;
  * @param <T> The parameter type of the operation. This can be {@link Void} for no parameter.
  * @param <R> the return type of the operation. This can be {@link Void} for no return.
  */
-@Experimental
 public interface OperationHandler<T, R> {
   /**
    * Create an operation handler for a synchronous operation backed by the given function. This
